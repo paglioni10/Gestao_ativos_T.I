@@ -1,0 +1,19 @@
+# Sobe um PostgreSQL local pra desenvolvimento.
+# Uso:  docker compose up -d   (sobe)  |  docker compose down  (para)
+# A connection string correspondente está no backend/.env.example
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gestao_ativos_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gestao_ativos
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
