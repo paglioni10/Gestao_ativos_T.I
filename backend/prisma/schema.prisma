@@ -1,0 +1,144 @@
+// Modelo de dados do Sistema de Gestão de Ativos de TI.
+// Conceito central: um EQUIPAMENTO é entregue a um USUÁRIO através de uma
+// ATRIBUIÇÃO (Assignment). Toda ação relevante gera um registro de AUDITORIA.
+//
+// Docs: https://www.prisma.io/docs
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Usuários do sistema. O papel (role) define o que cada um pode fazer.
+// ADMIN: gerencia equipamentos e atribuições.
+// COLLABORATOR: recebe equipamentos e assina termos.
+// ---------------------------------------------------------------------------
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(COLLABORATOR)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Atribuições em que este usuário é o RECEBEDOR do equipamento
+  assignmentsReceived Assignment[] @relation("AssignmentReceiver")
+  // Atribuições registradas por este usuário (quando é admin)
+  assignmentsCreated  Assignment[] @relation("AssignmentCreator")
+  // Ações de auditoria realizadas por este usuário
+  auditLogs           AuditLog[]
+}
+
+enum Role {
+  ADMIN
+  COLLABORATOR
+}
+
+// ---------------------------------------------------------------------------
+// Equipamentos (ativos). Cada um tem um status que muda conforme o ciclo de
+// vida: disponível -> atribuído -> (manutenção) -> disponível -> baixado.
+// ---------------------------------------------------------------------------
+model Equipment {
+  id            String          @id @default(uuid())
+  name          String
+  type          EquipmentType
+  serialNumber  String          @unique
+  status        EquipmentStatus @default(AVAILABLE)
+  purchaseDate  DateTime?
+  warrantyUntil DateTime?
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  assignments  Assignment[]
+  maintenances MaintenanceRecord[]
+}
+
+enum EquipmentType {
+  NOTEBOOK
+  DESKTOP
+  MONITOR
+  PHONE
+  PERIPHERAL
+  TOOL
+  OTHER
+}
+
+enum EquipmentStatus {
+  AVAILABLE
+  ASSIGNED
+  MAINTENANCE
+  RETIRED
+}
+
+// ---------------------------------------------------------------------------
+// Atribuição = o vínculo entre um equipamento e quem está com ele.
+// returnedAt nulo significa que o equipamento ainda está em poder do usuário.
+// signatureHash guarda a "assinatura" do termo (trilha de responsabilidade).
+// ---------------------------------------------------------------------------
+model Assignment {
+  id            String           @id @default(uuid())
+  status        AssignmentStatus @default(ACTIVE)
+  assignedAt    DateTime         @default(now())
+  returnedAt    DateTime?
+  notes         String?
+  termPdfPath   String? // caminho do PDF do termo gerado
+  signatureHash String? // hash da assinatura digital do termo
+
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  equipmentId String
+
+  // Quem recebeu o equipamento
+  receiver   User   @relation("AssignmentReceiver", fields: [receiverId], references: [id])
+  receiverId String
+
+  // Admin que registrou a entrega
+  createdBy   User   @relation("AssignmentCreator", fields: [createdById], references: [id])
+  createdById String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AssignmentStatus {
+  ACTIVE // equipamento entregue, ainda não devolvido
+  RETURNED // devolvido normalmente
+  OVERDUE // marcado como atrasado
+}
+
+// ---------------------------------------------------------------------------
+// Manutenções programadas / realizadas em um equipamento.
+// Base para os "alertas de manutenção" do dashboard.
+// ---------------------------------------------------------------------------
+model MaintenanceRecord {
+  id           String    @id @default(uuid())
+  description  String
+  scheduledFor DateTime
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  equipmentId String
+}
+
+// ---------------------------------------------------------------------------
+// Trilha de auditoria: registro imutável de "quem fez o quê e quando".
+// É o diferencial de compliance do projeto — nada é apagado, só registrado.
+// ---------------------------------------------------------------------------
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String // ex: "EQUIPMENT_CREATED", "ASSIGNMENT_RETURNED"
+  entity     String // ex: "Equipment", "Assignment"
+  entityId   String
+  metadata   Json? // dados extras do evento
+  createdAt  DateTime @default(now())
+
+  performedBy   User?   @relation(fields: [performedById], references: [id])
+  performedById String?
+}
