@@ -10,6 +10,13 @@ interface Maintenance {
   completedAt: string | null;
 }
 
+interface Credential {
+  id: string;
+  label: string;
+  username: string | null;
+  createdAt: string;
+}
+
 interface AssignmentLite {
   id: string;
   status: string;
@@ -39,6 +46,12 @@ export function EquipmentDetail() {
   const [form, setForm] = useState({ description: "", scheduledFor: "" });
   const [error, setError] = useState("");
 
+  // Cofre de senhas
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [credForm, setCredForm] = useState({ label: "", username: "", secret: "" });
+  // Segredos revelados ficam só em memória, indexados pelo id da credencial.
+  const [revealed, setRevealed] = useState<Record<string, string>>({});
+
   async function load() {
     const [eq, qr] = await Promise.all([
       api.get<EquipmentDetail>(`/equipment/${id}`),
@@ -46,6 +59,12 @@ export function EquipmentDetail() {
     ]);
     setEquipment(eq.data);
     setQrCode(qr.data.qrCode);
+    if (isAdmin) {
+      const cred = await api.get<Credential[]>("/credentials", {
+        params: { equipmentId: id },
+      });
+      setCredentials(cred.data);
+    }
   }
 
   useEffect(() => {
@@ -73,6 +92,50 @@ export function EquipmentDetail() {
       await load();
     } catch (err: any) {
       setError(err.response?.data?.message ?? "Erro ao concluir manutenção");
+    }
+  }
+
+  // Adiciona uma credencial ao cofre (o segredo é cifrado no backend).
+  async function addCredential(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    try {
+      await api.post("/credentials", { ...credForm, equipmentId: id });
+      setCredForm({ label: "", username: "", secret: "" });
+      await load();
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? "Erro ao salvar credencial");
+    }
+  }
+
+  // Revela o segredo (decifrado no backend; a revelação é auditada).
+  async function revealCredential(credId: string) {
+    setError("");
+    try {
+      const res = await api.get<{ secret: string }>(`/credentials/${credId}/reveal`);
+      setRevealed((prev) => ({ ...prev, [credId]: res.data.secret }));
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? "Erro ao revelar senha");
+    }
+  }
+
+  // Esconde de novo um segredo já revelado (some da tela).
+  function hideCredential(credId: string) {
+    setRevealed((prev) => {
+      const next = { ...prev };
+      delete next[credId];
+      return next;
+    });
+  }
+
+  async function deleteCredential(credId: string) {
+    if (!confirm("Remover esta credencial?")) return;
+    setError("");
+    try {
+      await api.delete(`/credentials/${credId}`);
+      await load();
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? "Erro ao remover credencial");
     }
   }
 
@@ -179,6 +242,94 @@ export function EquipmentDetail() {
           )}
         </tbody>
       </table>
+
+      {/* Cofre de senhas (somente admin) */}
+      {isAdmin && (
+        <>
+          <h2>🔐 Cofre de senhas</h2>
+          <p style={{ color: "#666", fontSize: 13 }}>
+            Senhas do aparelho (BIOS, conta do SO, PIN). Armazenadas
+            criptografadas; cada revelação fica registrada na auditoria.
+          </p>
+
+          <form
+            onSubmit={addCredential}
+            style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap" }}
+          >
+            <div>
+              <label style={{ display: "block" }}>Rótulo</label>
+              <input
+                value={credForm.label}
+                onChange={(e) => setCredForm({ ...credForm, label: e.target.value })}
+                placeholder="Senha BIOS"
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: "block" }}>Usuário (opcional)</label>
+              <input
+                value={credForm.username}
+                onChange={(e) =>
+                  setCredForm({ ...credForm, username: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label style={{ display: "block" }}>Senha</label>
+              <input
+                type="password"
+                value={credForm.secret}
+                onChange={(e) =>
+                  setCredForm({ ...credForm, secret: e.target.value })
+                }
+                required
+              />
+            </div>
+            <button type="submit">Salvar no cofre</button>
+          </form>
+
+          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
+            <thead>
+              <tr style={{ textAlign: "left" }}>
+                <th>Rótulo</th>
+                <th>Usuário</th>
+                <th>Senha</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {credentials.map((c) => (
+                <tr key={c.id} style={{ borderTop: "1px solid #ddd" }}>
+                  <td>{c.label}</td>
+                  <td>{c.username ?? "—"}</td>
+                  <td>
+                    {revealed[c.id] ? (
+                      <code>{revealed[c.id]}</code>
+                    ) : (
+                      <span style={{ color: "#aaa" }}>••••••••</span>
+                    )}
+                  </td>
+                  <td>
+                    {revealed[c.id] ? (
+                      <button onClick={() => hideCredential(c.id)}>Ocultar</button>
+                    ) : (
+                      <button onClick={() => revealCredential(c.id)}>Revelar</button>
+                    )}{" "}
+                    <button onClick={() => deleteCredential(c.id)}>Remover</button>
+                  </td>
+                </tr>
+              ))}
+              {credentials.length === 0 && (
+                <tr>
+                  <td colSpan={4} style={{ padding: 12, color: "#666" }}>
+                    Nenhuma senha cadastrada.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </>
+      )}
 
       {/* Histórico de posse */}
       <h2>Histórico de posse</h2>

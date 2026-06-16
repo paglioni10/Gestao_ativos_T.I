@@ -20,6 +20,9 @@ const ACTION_LABELS: Record<string, string> = {
   ASSIGNMENT_RETURNED: "Devolução registrada",
   MAINTENANCE_SCHEDULED: "Manutenção agendada",
   MAINTENANCE_COMPLETED: "Manutenção concluída",
+  CREDENTIAL_CREATED: "Senha adicionada ao cofre",
+  CREDENTIAL_REVEALED: "Senha revelada",
+  CREDENTIAL_DELETED: "Senha removida do cofre",
 };
 
 export function Audit() {

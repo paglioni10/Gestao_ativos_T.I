@@ -43,17 +43,17 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [x] CRUD de manutenções (agendar/concluir, módulo `maintenance`) com transação de status
 - [x] Alerta de manutenções atrasadas no dashboard (`overdueMaintenance`)
 
-## 🔐 Fase 4.5 — Cofre de senhas dos aparelhos
+## ✅ Fase 4.5 — Cofre de senhas dos aparelhos (feito)
 
-> Registrar as senhas atuais de cada aparelho (BIOS, conta do SO, PIN, etc.).
+> Registra as senhas atuais de cada aparelho (BIOS, conta do SO, PIN, etc.).
 > **Atenção:** senha de aparelho precisa ser RECUPERÁVEL, então usa-se
 > **criptografia (AES-256-GCM)**, e NÃO hash (diferente do login de usuário).
 
-- [ ] Tabela `DeviceCredential` (label, username, segredo cifrado, iv, authTag) ligada a `Equipment`
-- [ ] Cifrar/decifrar com chave-mestra vinda do `.env` (em produção: KMS/cofre)
-- [ ] Acesso apenas para ADMIN; listagem nunca devolve o segredo
-- [ ] Endpoint separado de "revelar" senha
-- [ ] Cada revelação gera um `AuditLog` (quem viu qual senha e quando)
+- [x] Tabela `DeviceCredential` (label, username, segredo cifrado, iv, authTag) ligada a `Equipment`
+- [x] Cifrar/decifrar com chave-mestra vinda do `.env` (`lib/crypto.ts`; em produção: KMS/cofre)
+- [x] Acesso apenas para ADMIN; listagem nunca devolve o segredo
+- [x] Endpoint separado de "revelar" senha (`GET /credentials/:id/reveal`)
+- [x] Cada revelação gera um `AuditLog` (`CREDENTIAL_REVEALED`)
 
 ## 🚀 Fase 5 — Polimento e deploy
 

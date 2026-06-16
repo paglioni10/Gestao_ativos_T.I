@@ -58,6 +58,7 @@ model Equipment {
 
   assignments  Assignment[]
   maintenances MaintenanceRecord[]
+  credentials  DeviceCredential[]
 }
 
 enum EquipmentType {
@@ -141,4 +142,24 @@ model AuditLog {
 
   performedBy   User?   @relation(fields: [performedById], references: [id])
   performedById String?
+}
+
+// ---------------------------------------------------------------------------
+// Cofre de senhas dos aparelhos (ex: senha do BIOS, conta do SO, PIN).
+// IMPORTANTE: o segredo é CRIPTOGRAFADO (AES-256-GCM), não hasheado, pois
+// precisa ser recuperável. secretEncrypted/iv/authTag são os 3 pedaços
+// necessários para decifrar. A chave-mestra fica FORA do banco (no .env).
+// ---------------------------------------------------------------------------
+model DeviceCredential {
+  id              String   @id @default(uuid())
+  label           String // ex: "Senha BIOS", "Conta admin Windows"
+  username        String? // opcional (ex: usuário da conta)
+  secretEncrypted String // texto cifrado (hex)
+  iv              String // vetor de inicialização do AES-GCM (hex)
+  authTag         String // tag de autenticação do GCM (hex)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  equipmentId String
 }
