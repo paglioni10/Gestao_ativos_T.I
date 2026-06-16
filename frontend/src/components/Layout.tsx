@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -18,9 +18,9 @@ export function Layout({ children }: { children: ReactNode }) {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <div className="topbar-brand">
+          <Link to="/" className="topbar-brand" aria-label="Ir para a visão geral">
             <Logo />
-          </div>
+          </Link>
           <nav className="topbar-nav">
             <NavLink to="/" end>
               Visão geral

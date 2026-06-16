@@ -115,6 +115,9 @@ a:hover {
 .topbar-brand {
   white-space: nowrap;
 }
+.topbar-brand:hover {
+  text-decoration: none;
+}
 
 /* ---- Logo da marca ---- */
 .logo {
