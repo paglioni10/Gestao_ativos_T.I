@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AppLayout } from "./components/AppLayout";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Assignments } from "./pages/Assignments";
 import { Audit } from "./pages/Audit";
@@ -16,46 +16,14 @@ export function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
 
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/equipamentos"
-            element={
-              <ProtectedRoute>
-                <Equipment />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/equipamentos/:id"
-            element={
-              <ProtectedRoute>
-                <EquipmentDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/atribuicoes"
-            element={
-              <ProtectedRoute>
-                <Assignments />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/auditoria"
-            element={
-              <ProtectedRoute>
-                <Audit />
-              </ProtectedRoute>
-            }
-          />
+          {/* Rotas protegidas: compartilham a casca (AppLayout). */}
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/equipamentos" element={<Equipment />} />
+            <Route path="/equipamentos/:id" element={<EquipmentDetail />} />
+            <Route path="/atribuicoes" element={<Assignments />} />
+            <Route path="/auditoria" element={<Audit />} />
+          </Route>
 
           {/* Qualquer rota desconhecida volta para a home. */}
           <Route path="*" element={<Navigate to="/" replace />} />

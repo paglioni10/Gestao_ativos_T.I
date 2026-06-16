@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "../components/Badge";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
@@ -21,7 +22,6 @@ const TYPES = [
   "OTHER",
 ];
 
-// Estado inicial do formulário, reutilizado ao limpar/cancelar.
 const emptyForm = { name: "", type: "NOTEBOOK", serialNumber: "" };
 
 export function Equipment() {
@@ -43,7 +43,6 @@ export function Equipment() {
     load();
   }, []);
 
-  // Cria (POST) ou edita (PUT) conforme estejamos ou não editando um item.
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -60,13 +59,11 @@ export function Equipment() {
     }
   }
 
-  // Preenche o formulário com os dados do item para edição.
   function handleEdit(item: Equipment) {
     setEditingId(item.id);
     setForm({ name: item.name, type: item.type, serialNumber: item.serialNumber });
   }
 
-  // Dá baixa no equipamento (status -> RETIRED) após confirmação.
   async function handleDelete(item: Equipment) {
     if (!confirm(`Dar baixa em "${item.name}"?`)) return;
     setError("");
@@ -84,110 +81,107 @@ export function Equipment() {
   }
 
   return (
-    <div className="container">
-      <button onClick={() => navigate("/")}>← Voltar</button>
+    <div>
       <h1>Equipamentos</h1>
+      <p className="muted">Cadastro e situação dos ativos</p>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p className="alert-error">{error}</p>}
 
-      {/* Formulário de cadastro/edição: apenas admin enxerga. */}
       {isAdmin && (
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            background: "#fff",
-            borderRadius: 8,
-            padding: 16,
-            marginBottom: 24,
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            alignItems: "flex-end",
-          }}
-        >
-          <div>
-            <label style={{ display: "block" }}>Nome</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label style={{ display: "block" }}>Tipo</label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-            >
-              {TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={{ display: "block" }}>Nº de série</label>
-            <input
-              value={form.serialNumber}
-              onChange={(e) =>
-                setForm({ ...form, serialNumber: e.target.value })
-              }
-              required
-            />
-          </div>
-          <button type="submit">{editingId ? "Salvar" : "Cadastrar"}</button>
-          {editingId && (
-            <button type="button" onClick={resetForm}>
-              Cancelar
+        <form className="panel" onSubmit={handleSubmit}>
+          <div className="form-row">
+            <div className="field">
+              <label>Nome</label>
+              <input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="field">
+              <label>Tipo</label>
+              <select
+                value={form.type}
+                onChange={(e) => setForm({ ...form, type: e.target.value })}
+              >
+                {TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Nº de série</label>
+              <input
+                value={form.serialNumber}
+                onChange={(e) => setForm({ ...form, serialNumber: e.target.value })}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary">
+              {editingId ? "Salvar" : "Cadastrar"}
             </button>
-          )}
+            {editingId && (
+              <button type="button" className="btn" onClick={resetForm}>
+                Cancelar
+              </button>
+            )}
+          </div>
         </form>
       )}
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left" }}>
-            <th>Nome</th>
-            <th>Tipo</th>
-            <th>Nº de série</th>
-            <th>Status</th>
-            {isAdmin && <th>Ações</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => (
-            <tr key={item.id} style={{ borderTop: "1px solid #ddd" }}>
-              <td>
-                <a
-                  onClick={() => navigate(`/equipamentos/${item.id}`)}
-                  style={{ color: "#0b66c3", cursor: "pointer" }}
-                >
-                  {item.name}
-                </a>
-              </td>
-              <td>{item.type}</td>
-              <td>{item.serialNumber}</td>
-              <td>{item.status}</td>
-              {isAdmin && (
-                <td>
-                  <button onClick={() => handleEdit(item)}>Editar</button>{" "}
-                  {item.status !== "RETIRED" && (
-                    <button onClick={() => handleDelete(item)}>Baixar</button>
-                  )}
-                </td>
-              )}
-            </tr>
-          ))}
-          {items.length === 0 && (
+      <div className="panel" style={{ padding: 0 }}>
+        <table className="table">
+          <thead>
             <tr>
-              <td colSpan={isAdmin ? 5 : 4} style={{ padding: 16, color: "#666" }}>
-                Nenhum equipamento cadastrado ainda.
-              </td>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Nº de série</th>
+              <th>Status</th>
+              {isAdmin && <th>Ações</th>}
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.id}>
+                <td>
+                  <a onClick={() => navigate(`/equipamentos/${item.id}`)}>
+                    {item.name}
+                  </a>
+                </td>
+                <td>{item.type}</td>
+                <td>{item.serialNumber}</td>
+                <td>
+                  <Badge status={item.status} />
+                </td>
+                {isAdmin && (
+                  <td>
+                    <button className="btn btn-sm" onClick={() => handleEdit(item)}>
+                      Editar
+                    </button>
+                    {item.status !== "RETIRED" && (
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(item)}
+                      >
+                        Baixar
+                      </button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+            {items.length === 0 && (
+              <tr>
+                <td colSpan={isAdmin ? 5 : 4} className="empty">
+                  Nenhum equipamento cadastrado ainda.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

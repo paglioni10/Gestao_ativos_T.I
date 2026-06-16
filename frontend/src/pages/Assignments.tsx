@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Badge } from "../components/Badge";
 import { SignaturePad } from "../components/SignaturePad";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
@@ -28,7 +28,6 @@ interface User {
 }
 
 export function Assignments() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
 
@@ -56,7 +55,6 @@ export function Assignments() {
     load();
   }, []);
 
-  // Registra a entrega de um equipamento a um colaborador (com assinatura).
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -73,7 +71,6 @@ export function Assignments() {
     }
   }
 
-  // Registra a devolução de uma atribuição ativa.
   async function handleReturn(item: Assignment) {
     if (!confirm(`Confirmar devolução de "${item.equipment.name}"?`)) return;
     setError("");
@@ -85,12 +82,9 @@ export function Assignments() {
     }
   }
 
-  // Baixa o PDF do termo. Como a rota exige token, buscamos via api (que
-  // anexa o Authorization) e geramos um download a partir do blob.
+  // Baixa o PDF do termo via api (que anexa o token) a partir do blob.
   async function downloadTerm(id: string) {
-    const res = await api.get(`/assignments/${id}/term`, {
-      responseType: "blob",
-    });
+    const res = await api.get(`/assignments/${id}/term`, { responseType: "blob" });
     const url = URL.createObjectURL(res.data);
     const a = document.createElement("a");
     a.href = url;
@@ -100,115 +94,113 @@ export function Assignments() {
   }
 
   return (
-    <div className="container">
-      <button onClick={() => navigate("/")}>← Voltar</button>
+    <div>
       <h1>Atribuições</h1>
+      <p className="muted">Entrega e devolução de equipamentos</p>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p className="alert-error">{error}</p>}
 
-      {/* Formulário de entrega: apenas admin. */}
       {isAdmin && (
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            background: "#fff",
-            borderRadius: 8,
-            padding: 16,
-            marginBottom: 24,
-            display: "flex",
-            gap: 16,
-            flexWrap: "wrap",
-            alignItems: "flex-end",
-          }}
-        >
-          <div>
-            <label style={{ display: "block" }}>Equipamento disponível</label>
-            <select
-              value={form.equipmentId}
-              onChange={(e) => setForm({ ...form, equipmentId: e.target.value })}
-              required
-            >
-              <option value="">Selecione...</option>
-              {available.map((eq) => (
-                <option key={eq.id} value={eq.id}>
-                  {eq.name} ({eq.serialNumber})
-                </option>
-              ))}
-            </select>
+        <form className="panel" onSubmit={handleSubmit}>
+          <div className="form-row">
+            <div className="field">
+              <label>Equipamento disponível</label>
+              <select
+                value={form.equipmentId}
+                onChange={(e) => setForm({ ...form, equipmentId: e.target.value })}
+                required
+              >
+                <option value="">Selecione...</option>
+                {available.map((eq) => (
+                  <option key={eq.id} value={eq.id}>
+                    {eq.name} ({eq.serialNumber})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Colaborador</label>
+              <select
+                value={form.receiverId}
+                onChange={(e) => setForm({ ...form, receiverId: e.target.value })}
+                required
+              >
+                <option value="">Selecione...</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <SignaturePad onChange={setSignature} />
+            </div>
+            <button type="submit" className="btn btn-primary">
+              Registrar entrega
+            </button>
           </div>
-          <div>
-            <label style={{ display: "block" }}>Colaborador</label>
-            <select
-              value={form.receiverId}
-              onChange={(e) => setForm({ ...form, receiverId: e.target.value })}
-              required
-            >
-              <option value="">Selecione...</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <SignaturePad onChange={setSignature} />
-          <button type="submit">Registrar entrega</button>
         </form>
       )}
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left" }}>
-            <th>Equipamento</th>
-            <th>Colaborador</th>
-            <th>Entregue em</th>
-            <th>Status</th>
-            <th>Termo</th>
-            {isAdmin && <th>Ações</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {assignments.map((item) => (
-            <tr key={item.id} style={{ borderTop: "1px solid #ddd" }}>
-              <td>
-                {item.equipment.name}
-                <br />
-                <small style={{ color: "#888" }}>
-                  {item.equipment.serialNumber}
-                </small>
-              </td>
-              <td>{item.receiver.name}</td>
-              <td>{new Date(item.assignedAt).toLocaleDateString("pt-BR")}</td>
-              <td>{item.status}</td>
-              <td>
-                {item.termPdfPath ? (
-                  <button onClick={() => downloadTerm(item.id)}>
-                    Baixar termo
-                  </button>
-                ) : (
-                  <span style={{ color: "#aaa" }}>—</span>
-                )}
-              </td>
-              {isAdmin && (
+      <div className="panel" style={{ padding: 0 }}>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Equipamento</th>
+              <th>Colaborador</th>
+              <th>Entregue em</th>
+              <th>Status</th>
+              <th>Termo</th>
+              {isAdmin && <th>Ações</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {assignments.map((item) => (
+              <tr key={item.id}>
                 <td>
-                  {item.status === "ACTIVE" && (
-                    <button onClick={() => handleReturn(item)}>
-                      Registrar devolução
+                  {item.equipment.name}
+                  <br />
+                  <span className="muted">{item.equipment.serialNumber}</span>
+                </td>
+                <td>{item.receiver.name}</td>
+                <td>{new Date(item.assignedAt).toLocaleDateString("pt-BR")}</td>
+                <td>
+                  <Badge status={item.status} />
+                </td>
+                <td>
+                  {item.termPdfPath ? (
+                    <button className="btn btn-sm" onClick={() => downloadTerm(item.id)}>
+                      Baixar termo
                     </button>
+                  ) : (
+                    <span className="muted">—</span>
                   )}
                 </td>
-              )}
-            </tr>
-          ))}
-          {assignments.length === 0 && (
-            <tr>
-              <td colSpan={isAdmin ? 6 : 5} style={{ padding: 16, color: "#666" }}>
-                Nenhuma atribuição registrada ainda.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                {isAdmin && (
+                  <td>
+                    {item.status === "ACTIVE" && (
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => handleReturn(item)}
+                      >
+                        Registrar devolução
+                      </button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+            {assignments.length === 0 && (
+              <tr>
+                <td colSpan={isAdmin ? 6 : 5} className="empty">
+                  Nenhuma atribuição registrada ainda.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -55,11 +55,18 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [x] Endpoint separado de "revelar" senha (`GET /credentials/:id/reveal`)
 - [x] Cada revelação gera um `AuditLog` (`CREDENTIAL_REVEALED`)
 
-## 🚀 Fase 5 — Polimento e deploy
+## ✅ Fase 5 — Polimento visual (feito)
 
-- [ ] Tratamento de loading/erros no frontend
+- [x] Design system (cores, tipografia, componentes) em `index.css`
+- [x] Layout com barra de navegação consistente entre as páginas (`Layout`/`AppLayout`)
+- [x] Badges de status, tabelas, botões e formulários estilizados
+- [x] Tratamento de loading/erros no frontend (mensagens em `.alert-error`)
+
+## 🚀 Fase 6 — Deploy e conferência final
+
 - [ ] Deploy: frontend na Vercel, backend + banco no Render/Railway
 - [ ] Print/GIF no README + link do app no ar
+- [ ] Conferência final ponta a ponta
 
 ## 💡 Dicas de commit
 

@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Badge } from "../components/Badge";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
@@ -49,7 +50,6 @@ export function EquipmentDetail() {
   // Cofre de senhas
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [credForm, setCredForm] = useState({ label: "", username: "", secret: "" });
-  // Segredos revelados ficam só em memória, indexados pelo id da credencial.
   const [revealed, setRevealed] = useState<Record<string, string>>({});
 
   async function load() {
@@ -71,7 +71,6 @@ export function EquipmentDetail() {
     load();
   }, [id]);
 
-  // Agenda uma manutenção para este equipamento.
   async function scheduleMaintenance(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -84,7 +83,6 @@ export function EquipmentDetail() {
     }
   }
 
-  // Conclui uma manutenção em aberto.
   async function completeMaintenance(maintenanceId: string) {
     setError("");
     try {
@@ -95,7 +93,6 @@ export function EquipmentDetail() {
     }
   }
 
-  // Adiciona uma credencial ao cofre (o segredo é cifrado no backend).
   async function addCredential(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -108,7 +105,6 @@ export function EquipmentDetail() {
     }
   }
 
-  // Revela o segredo (decifrado no backend; a revelação é auditada).
   async function revealCredential(credId: string) {
     setError("");
     try {
@@ -119,7 +115,6 @@ export function EquipmentDetail() {
     }
   }
 
-  // Esconde de novo um segredo já revelado (some da tela).
   function hideCredential(credId: string) {
     setRevealed((prev) => {
       const next = { ...prev };
@@ -139,231 +134,259 @@ export function EquipmentDetail() {
     }
   }
 
-  if (!equipment) return <p className="container">Carregando...</p>;
+  if (!equipment) return <p className="muted">Carregando...</p>;
 
   return (
-    <div className="container">
-      <button onClick={() => navigate(-1)}>← Voltar</button>
+    <div>
+      <a className="back-link" onClick={() => navigate(-1)}>
+        ← Voltar
+      </a>
       <h1>{equipment.name}</h1>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p className="alert-error">{error}</p>}
 
-      <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
-        <div>
-          <p>
-            <strong>Tipo:</strong> {equipment.type}
-          </p>
-          <p>
-            <strong>Nº de série:</strong> {equipment.serialNumber}
-          </p>
-          <p>
-            <strong>Status:</strong> {equipment.status}
-          </p>
-        </div>
-
-        {/* QR Code: escanear abre esta mesma ficha no celular. */}
-        <div style={{ textAlign: "center" }}>
-          {qrCode && <img src={qrCode} alt="QR Code do equipamento" />}
-          <div style={{ fontSize: 12, color: "#888" }}>
-            Escaneie para abrir a ficha
+      <div className="panel" style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
+        <div style={{ display: "grid", gap: 6, alignContent: "start" }}>
+          <div>
+            <span className="muted">Tipo: </span>
+            {equipment.type}
           </div>
+          <div>
+            <span className="muted">Nº de série: </span>
+            {equipment.serialNumber}
+          </div>
+          <div>
+            <span className="muted">Status: </span>
+            <Badge status={equipment.status} />
+          </div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          {qrCode && <img src={qrCode} alt="QR Code do equipamento" width={140} />}
+          <div className="muted">Escaneie para abrir a ficha</div>
         </div>
       </div>
 
       {/* Manutenções */}
       <h2>Manutenções</h2>
       {isAdmin && (
-        <form
-          onSubmit={scheduleMaintenance}
-          style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 16 }}
-        >
-          <div>
-            <label style={{ display: "block" }}>Descrição</label>
-            <input
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              required
-            />
+        <form className="panel" onSubmit={scheduleMaintenance}>
+          <div className="form-row">
+            <div className="field">
+              <label>Descrição</label>
+              <input
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                required
+              />
+            </div>
+            <div className="field">
+              <label>Data prevista</label>
+              <input
+                type="date"
+                value={form.scheduledFor}
+                onChange={(e) => setForm({ ...form, scheduledFor: e.target.value })}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary">
+              Agendar manutenção
+            </button>
           </div>
-          <div>
-            <label style={{ display: "block" }}>Data prevista</label>
-            <input
-              type="date"
-              value={form.scheduledFor}
-              onChange={(e) => setForm({ ...form, scheduledFor: e.target.value })}
-              required
-            />
-          </div>
-          <button type="submit">Agendar manutenção</button>
         </form>
       )}
 
-      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
-        <thead>
-          <tr style={{ textAlign: "left" }}>
-            <th>Descrição</th>
-            <th>Prevista para</th>
-            <th>Situação</th>
-            {isAdmin && <th>Ações</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {equipment.maintenances.map((m) => {
-            const overdue = !m.completedAt && new Date(m.scheduledFor) < new Date();
-            return (
-              <tr key={m.id} style={{ borderTop: "1px solid #ddd" }}>
-                <td>{m.description}</td>
-                <td>{new Date(m.scheduledFor).toLocaleDateString("pt-BR")}</td>
-                <td style={{ color: overdue ? "crimson" : undefined }}>
-                  {m.completedAt
-                    ? "Concluída"
-                    : overdue
-                    ? "Atrasada"
-                    : "Agendada"}
-                </td>
-                {isAdmin && (
+      <div className="panel" style={{ padding: 0 }}>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Prevista para</th>
+              <th>Situação</th>
+              {isAdmin && <th>Ações</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {equipment.maintenances.map((m) => {
+              const overdue = !m.completedAt && new Date(m.scheduledFor) < new Date();
+              return (
+                <tr key={m.id}>
+                  <td>{m.description}</td>
+                  <td>{new Date(m.scheduledFor).toLocaleDateString("pt-BR")}</td>
                   <td>
-                    {!m.completedAt && (
-                      <button onClick={() => completeMaintenance(m.id)}>
-                        Concluir
-                      </button>
+                    {m.completedAt ? (
+                      <Badge tone="green">Concluída</Badge>
+                    ) : overdue ? (
+                      <Badge tone="red">Atrasada</Badge>
+                    ) : (
+                      <Badge tone="blue">Agendada</Badge>
                     )}
                   </td>
-                )}
+                  {isAdmin && (
+                    <td>
+                      {!m.completedAt && (
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => completeMaintenance(m.id)}
+                        >
+                          Concluir
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+            {equipment.maintenances.length === 0 && (
+              <tr>
+                <td colSpan={isAdmin ? 4 : 3} className="empty">
+                  Nenhuma manutenção registrada.
+                </td>
               </tr>
-            );
-          })}
-          {equipment.maintenances.length === 0 && (
-            <tr>
-              <td colSpan={isAdmin ? 4 : 3} style={{ padding: 12, color: "#666" }}>
-                Nenhuma manutenção registrada.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Cofre de senhas (somente admin) */}
       {isAdmin && (
         <>
           <h2>🔐 Cofre de senhas</h2>
-          <p style={{ color: "#666", fontSize: 13 }}>
-            Senhas do aparelho (BIOS, conta do SO, PIN). Armazenadas
-            criptografadas; cada revelação fica registrada na auditoria.
+          <p className="muted">
+            Senhas do aparelho (BIOS, conta do SO, PIN). Armazenadas criptografadas;
+            cada revelação fica registrada na auditoria.
           </p>
 
-          <form
-            onSubmit={addCredential}
-            style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap" }}
-          >
-            <div>
-              <label style={{ display: "block" }}>Rótulo</label>
-              <input
-                value={credForm.label}
-                onChange={(e) => setCredForm({ ...credForm, label: e.target.value })}
-                placeholder="Senha BIOS"
-                required
-              />
+          <form className="panel" onSubmit={addCredential}>
+            <div className="form-row">
+              <div className="field">
+                <label>Rótulo</label>
+                <input
+                  value={credForm.label}
+                  onChange={(e) => setCredForm({ ...credForm, label: e.target.value })}
+                  placeholder="Senha BIOS"
+                  required
+                />
+              </div>
+              <div className="field">
+                <label>Usuário (opcional)</label>
+                <input
+                  value={credForm.username}
+                  onChange={(e) =>
+                    setCredForm({ ...credForm, username: e.target.value })
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Senha</label>
+                <input
+                  type="password"
+                  value={credForm.secret}
+                  onChange={(e) =>
+                    setCredForm({ ...credForm, secret: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary">
+                Salvar no cofre
+              </button>
             </div>
-            <div>
-              <label style={{ display: "block" }}>Usuário (opcional)</label>
-              <input
-                value={credForm.username}
-                onChange={(e) =>
-                  setCredForm({ ...credForm, username: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label style={{ display: "block" }}>Senha</label>
-              <input
-                type="password"
-                value={credForm.secret}
-                onChange={(e) =>
-                  setCredForm({ ...credForm, secret: e.target.value })
-                }
-                required
-              />
-            </div>
-            <button type="submit">Salvar no cofre</button>
           </form>
 
-          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
-            <thead>
-              <tr style={{ textAlign: "left" }}>
-                <th>Rótulo</th>
-                <th>Usuário</th>
-                <th>Senha</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {credentials.map((c) => (
-                <tr key={c.id} style={{ borderTop: "1px solid #ddd" }}>
-                  <td>{c.label}</td>
-                  <td>{c.username ?? "—"}</td>
-                  <td>
-                    {revealed[c.id] ? (
-                      <code>{revealed[c.id]}</code>
-                    ) : (
-                      <span style={{ color: "#aaa" }}>••••••••</span>
-                    )}
-                  </td>
-                  <td>
-                    {revealed[c.id] ? (
-                      <button onClick={() => hideCredential(c.id)}>Ocultar</button>
-                    ) : (
-                      <button onClick={() => revealCredential(c.id)}>Revelar</button>
-                    )}{" "}
-                    <button onClick={() => deleteCredential(c.id)}>Remover</button>
-                  </td>
-                </tr>
-              ))}
-              {credentials.length === 0 && (
+          <div className="panel" style={{ padding: 0 }}>
+            <table className="table">
+              <thead>
                 <tr>
-                  <td colSpan={4} style={{ padding: 12, color: "#666" }}>
-                    Nenhuma senha cadastrada.
-                  </td>
+                  <th>Rótulo</th>
+                  <th>Usuário</th>
+                  <th>Senha</th>
+                  <th>Ações</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {credentials.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.label}</td>
+                    <td>{c.username ?? "—"}</td>
+                    <td>
+                      {revealed[c.id] ? (
+                        <code>{revealed[c.id]}</code>
+                      ) : (
+                        <span className="muted">••••••••</span>
+                      )}
+                    </td>
+                    <td>
+                      {revealed[c.id] ? (
+                        <button className="btn btn-sm" onClick={() => hideCredential(c.id)}>
+                          Ocultar
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => revealCredential(c.id)}
+                        >
+                          Revelar
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => deleteCredential(c.id)}
+                      >
+                        Remover
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {credentials.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="empty">
+                      Nenhuma senha cadastrada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
 
       {/* Histórico de posse */}
       <h2>Histórico de posse</h2>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left" }}>
-            <th>Colaborador</th>
-            <th>Entregue em</th>
-            <th>Devolvido em</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {equipment.assignments.map((a) => (
-            <tr key={a.id} style={{ borderTop: "1px solid #ddd" }}>
-              <td>{a.receiver.name}</td>
-              <td>{new Date(a.assignedAt).toLocaleDateString("pt-BR")}</td>
-              <td>
-                {a.returnedAt
-                  ? new Date(a.returnedAt).toLocaleDateString("pt-BR")
-                  : "—"}
-              </td>
-              <td>{a.status}</td>
-            </tr>
-          ))}
-          {equipment.assignments.length === 0 && (
+      <div className="panel" style={{ padding: 0 }}>
+        <table className="table">
+          <thead>
             <tr>
-              <td colSpan={4} style={{ padding: 12, color: "#666" }}>
-                Nenhuma atribuição registrada.
-              </td>
+              <th>Colaborador</th>
+              <th>Entregue em</th>
+              <th>Devolvido em</th>
+              <th>Status</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {equipment.assignments.map((a) => (
+              <tr key={a.id}>
+                <td>{a.receiver.name}</td>
+                <td>{new Date(a.assignedAt).toLocaleDateString("pt-BR")}</td>
+                <td>
+                  {a.returnedAt
+                    ? new Date(a.returnedAt).toLocaleDateString("pt-BR")
+                    : "—"}
+                </td>
+                <td>
+                  <Badge status={a.status} />
+                </td>
+              </tr>
+            ))}
+            {equipment.assignments.length === 0 && (
+              <tr>
+                <td colSpan={4} className="empty">
+                  Nenhuma atribuição registrada.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

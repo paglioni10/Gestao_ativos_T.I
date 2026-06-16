@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 
 interface AuditLog {
@@ -11,22 +10,21 @@ interface AuditLog {
   performedBy: { name: string } | null;
 }
 
-// Traduz os códigos de ação para um texto legível.
-const ACTION_LABELS: Record<string, string> = {
-  EQUIPMENT_CREATED: "Equipamento cadastrado",
-  EQUIPMENT_UPDATED: "Equipamento editado",
-  EQUIPMENT_RETIRED: "Equipamento baixado",
-  ASSIGNMENT_CREATED: "Entrega registrada",
-  ASSIGNMENT_RETURNED: "Devolução registrada",
-  MAINTENANCE_SCHEDULED: "Manutenção agendada",
-  MAINTENANCE_COMPLETED: "Manutenção concluída",
-  CREDENTIAL_CREATED: "Senha adicionada ao cofre",
-  CREDENTIAL_REVEALED: "Senha revelada",
-  CREDENTIAL_DELETED: "Senha removida do cofre",
+// Rótulo + tom de cor por tipo de ação.
+const ACTIONS: Record<string, { label: string; tone: string }> = {
+  EQUIPMENT_CREATED: { label: "Equipamento cadastrado", tone: "green" },
+  EQUIPMENT_UPDATED: { label: "Equipamento editado", tone: "blue" },
+  EQUIPMENT_RETIRED: { label: "Equipamento baixado", tone: "gray" },
+  ASSIGNMENT_CREATED: { label: "Entrega registrada", tone: "blue" },
+  ASSIGNMENT_RETURNED: { label: "Devolução registrada", tone: "green" },
+  MAINTENANCE_SCHEDULED: { label: "Manutenção agendada", tone: "amber" },
+  MAINTENANCE_COMPLETED: { label: "Manutenção concluída", tone: "green" },
+  CREDENTIAL_CREATED: { label: "Senha adicionada ao cofre", tone: "blue" },
+  CREDENTIAL_REVEALED: { label: "Senha revelada", tone: "red" },
+  CREDENTIAL_DELETED: { label: "Senha removida do cofre", tone: "gray" },
 };
 
 export function Audit() {
-  const navigate = useNavigate();
   const [logs, setLogs] = useState<AuditLog[]>([]);
 
   useEffect(() => {
@@ -34,40 +32,46 @@ export function Audit() {
   }, []);
 
   return (
-    <div className="container">
-      <button onClick={() => navigate("/")}>← Voltar</button>
+    <div>
       <h1>Trilha de auditoria</h1>
-      <p style={{ color: "#666" }}>
-        Registro imutável de quem fez o quê e quando.
-      </p>
+      <p className="muted">Registro imutável de quem fez o quê e quando</p>
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left" }}>
-            <th>Quando</th>
-            <th>Ação</th>
-            <th>Entidade</th>
-            <th>Por</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map((log) => (
-            <tr key={log.id} style={{ borderTop: "1px solid #ddd" }}>
-              <td>{new Date(log.createdAt).toLocaleString("pt-BR")}</td>
-              <td>{ACTION_LABELS[log.action] ?? log.action}</td>
-              <td>{log.entity}</td>
-              <td>{log.performedBy?.name ?? "—"}</td>
-            </tr>
-          ))}
-          {logs.length === 0 && (
+      <div className="panel" style={{ padding: 0 }}>
+        <table className="table">
+          <thead>
             <tr>
-              <td colSpan={4} style={{ padding: 16, color: "#666" }}>
-                Nenhum registro ainda.
-              </td>
+              <th>Quando</th>
+              <th>Ação</th>
+              <th>Entidade</th>
+              <th>Por</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {logs.map((log) => {
+              const conf = ACTIONS[log.action];
+              return (
+                <tr key={log.id}>
+                  <td>{new Date(log.createdAt).toLocaleString("pt-BR")}</td>
+                  <td>
+                    <span className={`badge badge-${conf?.tone ?? "gray"}`}>
+                      {conf?.label ?? log.action}
+                    </span>
+                  </td>
+                  <td>{log.entity}</td>
+                  <td>{log.performedBy?.name ?? "—"}</td>
+                </tr>
+              );
+            })}
+            {logs.length === 0 && (
+              <tr>
+                <td colSpan={4} className="empty">
+                  Nenhum registro ainda.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

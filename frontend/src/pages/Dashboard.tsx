@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
@@ -13,8 +12,7 @@ interface Summary {
 
 // Tela inicial com os números-resumo vindos de /dashboard/summary.
 export function Dashboard() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [summary, setSummary] = useState<Summary | null>(null);
 
   useEffect(() => {
@@ -25,43 +23,35 @@ export function Dashboard() {
   }, []);
 
   return (
-    <div className="container">
-      <header style={{ display: "flex", justifyContent: "space-between" }}>
-        <h1>Olá, {user?.name}</h1>
-        <button onClick={logout}>Sair</button>
-      </header>
-
-      <nav style={{ margin: "16px 0", display: "flex", gap: 8 }}>
-        <button onClick={() => navigate("/equipamentos")}>Equipamentos</button>
-        <button onClick={() => navigate("/atribuicoes")}>Atribuições</button>
-        {user?.role === "ADMIN" && (
-          <button onClick={() => navigate("/auditoria")}>Auditoria</button>
-        )}
-      </nav>
+    <div>
+      <h1>Olá, {user?.name}</h1>
+      <p className="muted">Visão geral dos ativos</p>
 
       {summary ? (
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-          <Card label="Atribuídos agora" value={summary.activeAssignments} />
-          <Card label="Atrasados" value={summary.overdueAssignments} />
-          <Card label="Manutenções próximas" value={summary.upcomingMaintenance} />
-          <Card
+        <div className="stat-grid" style={{ marginTop: 20 }}>
+          <Stat label="Disponíveis" value={summary.equipmentByStatus.AVAILABLE ?? 0} />
+          <Stat label="Atribuídos agora" value={summary.activeAssignments} />
+          <Stat label="Em manutenção" value={summary.equipmentByStatus.MAINTENANCE ?? 0} />
+          <Stat label="Manutenções próximas" value={summary.upcomingMaintenance} />
+          <Stat
             label="Manutenções atrasadas"
             value={summary.overdueMaintenance}
             alert={summary.overdueMaintenance > 0}
           />
-          <Card
-            label="Disponíveis"
-            value={summary.equipmentByStatus.AVAILABLE ?? 0}
+          <Stat
+            label="Atribuições atrasadas"
+            value={summary.overdueAssignments}
+            alert={summary.overdueAssignments > 0}
           />
         </div>
       ) : (
-        <p>Carregando métricas...</p>
+        <p className="muted">Carregando métricas...</p>
       )}
     </div>
   );
 }
 
-function Card({
+function Stat({
   label,
   value,
   alert = false,
@@ -71,21 +61,9 @@ function Card({
   alert?: boolean;
 }) {
   return (
-    <div
-      style={{
-        background: alert ? "#fdecea" : "#fff",
-        borderRadius: 8,
-        padding: 20,
-        minWidth: 160,
-        boxShadow: "0 1px 3px rgba(0,0,0,.1)",
-      }}
-    >
-      <div
-        style={{ fontSize: 32, fontWeight: 700, color: alert ? "crimson" : undefined }}
-      >
-        {value}
-      </div>
-      <div style={{ color: "#666" }}>{label}</div>
+    <div className={`stat-card${alert ? " alert" : ""}`}>
+      <div className="stat-value">{value}</div>
+      <div className="stat-label">{label}</div>
     </div>
   );
 }
