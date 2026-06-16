@@ -1,11 +1,14 @@
+import { createHash } from "node:crypto";
 import { AppError } from "../../lib/AppError.js";
 import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
+import { generateTermPdf } from "../../lib/term.js";
 
 interface CreateAssignmentInput {
   equipmentId: string;
   receiverId: string;
   notes?: string;
+  signatureDataUrl?: string; // assinatura capturada no frontend (base64)
 }
 
 export const assignmentService = {
@@ -22,7 +25,7 @@ export const assignmentService = {
 
   // Registra a ENTREGA de um equipamento a um colaborador.
   async create(
-    { equipmentId, receiverId, notes }: CreateAssignmentInput,
+    { equipmentId, receiverId, notes, signatureDataUrl }: CreateAssignmentInput,
     createdById: string
   ) {
     // 1. Validações de negócio antes de tocar no banco.
@@ -54,6 +57,34 @@ export const assignmentService = {
       return created;
     });
 
+    // 3. Hash de integridade da assinatura (se houver): SHA-256 sobre a
+    //    assinatura + id + data. Qualquer alteração futura muda o hash.
+    let signatureHash: string | undefined;
+    if (signatureDataUrl) {
+      signatureHash = createHash("sha256")
+        .update(
+          `${signatureDataUrl}|${assignment.id}|${assignment.assignedAt.toISOString()}`
+        )
+        .digest("hex");
+    }
+
+    // 4. Gera o PDF do termo (efeito colateral fora da transação) e grava o
+    //    caminho + o hash na atribuição.
+    const termPdfPath = await generateTermPdf({
+      assignmentId: assignment.id,
+      equipmentName: equipment.name,
+      equipmentSerial: equipment.serialNumber,
+      receiverName: receiver.name,
+      assignedAt: assignment.assignedAt,
+      signatureHash,
+      signatureDataUrl,
+    });
+
+    const updated = await prisma.assignment.update({
+      where: { id: assignment.id },
+      data: { termPdfPath, signatureHash },
+    });
+
     await recordAudit({
       action: "ASSIGNMENT_CREATED",
       entity: "Assignment",
@@ -61,7 +92,7 @@ export const assignmentService = {
       performedById: createdById,
       metadata: { equipmentId, receiverId },
     });
-    return assignment;
+    return updated;
   },
 
   // Registra a DEVOLUÇÃO: encerra a atribuição e libera o equipamento.
@@ -96,5 +127,16 @@ export const assignmentService = {
       performedById,
     });
     return updated;
+  },
+
+  // Devolve o caminho do PDF do termo de uma atribuição (para download).
+  async getTermPath(assignmentId: string) {
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+    });
+    if (!assignment || !assignment.termPdfPath) {
+      throw new AppError("Termo não encontrado", 404);
+    }
+    return assignment.termPdfPath;
   },
 };

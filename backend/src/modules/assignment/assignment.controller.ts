@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { Request, Response } from "express";
 import { z } from "zod";
 import { assignmentService } from "./assignment.service.js";
@@ -6,6 +7,7 @@ const createSchema = z.object({
   equipmentId: z.string().uuid(),
   receiverId: z.string().uuid(),
   notes: z.string().optional(),
+  signatureDataUrl: z.string().optional(),
 });
 
 export const assignmentController = {
@@ -26,5 +28,12 @@ export const assignmentController = {
       req.user!.sub
     );
     return res.json(result);
+  },
+
+  // Baixa o PDF do termo de responsabilidade da atribuição.
+  async downloadTerm(req: Request, res: Response) {
+    const relativePath = await assignmentService.getTermPath(req.params.id);
+    const absolutePath = join(process.cwd(), relativePath);
+    return res.download(absolutePath);
   },
 };

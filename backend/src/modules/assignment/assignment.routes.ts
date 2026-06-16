@@ -19,3 +19,6 @@ assignmentRoutes.patch(
   ensureAdmin,
   asyncHandler(assignmentController.returnEquipment)
 );
+
+// GET /api/assignments/:id/term -> baixa o PDF do termo (qualquer logado)
+assignmentRoutes.get("/:id/term", asyncHandler(assignmentController.downloadTerm));

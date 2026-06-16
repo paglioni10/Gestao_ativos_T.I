@@ -33,6 +33,9 @@ export function Dashboard() {
       <nav style={{ margin: "16px 0", display: "flex", gap: 8 }}>
         <button onClick={() => navigate("/equipamentos")}>Equipamentos</button>
         <button onClick={() => navigate("/atribuicoes")}>Atribuições</button>
+        {user?.role === "ADMIN" && (
+          <button onClick={() => navigate("/auditoria")}>Auditoria</button>
+        )}
       </nav>
 
       {summary ? (

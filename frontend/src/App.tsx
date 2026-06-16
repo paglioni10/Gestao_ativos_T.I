@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Assignments } from "./pages/Assignments";
+import { Audit } from "./pages/Audit";
 import { Dashboard } from "./pages/Dashboard";
 import { Equipment } from "./pages/Equipment";
 import { Login } from "./pages/Login";
@@ -35,6 +36,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <Assignments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auditoria"
+            element={
+              <ProtectedRoute>
+                <Audit />
               </ProtectedRoute>
             }
           />

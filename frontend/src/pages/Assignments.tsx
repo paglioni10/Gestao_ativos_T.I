@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SignaturePad } from "../components/SignaturePad";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
@@ -8,6 +9,8 @@ interface Assignment {
   status: string;
   assignedAt: string;
   returnedAt: string | null;
+  termPdfPath: string | null;
+  signatureHash: string | null;
   equipment: { id: string; name: string; serialNumber: string };
   receiver: { id: string; name: string };
 }
@@ -33,6 +36,7 @@ export function Assignments() {
   const [available, setAvailable] = useState<Equipment[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState({ equipmentId: "", receiverId: "" });
+  const [signature, setSignature] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   async function load() {
@@ -42,7 +46,6 @@ export function Assignments() {
     ]);
     setAssignments(a.data);
     setAvailable(eq.data);
-    // Lista de colaboradores só é acessível para admin.
     if (isAdmin) {
       const u = await api.get<User[]>("/users");
       setUsers(u.data);
@@ -53,13 +56,17 @@ export function Assignments() {
     load();
   }, []);
 
-  // Registra a entrega de um equipamento a um colaborador.
+  // Registra a entrega de um equipamento a um colaborador (com assinatura).
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
     try {
-      await api.post("/assignments", form);
+      await api.post("/assignments", {
+        ...form,
+        signatureDataUrl: signature ?? undefined,
+      });
       setForm({ equipmentId: "", receiverId: "" });
+      setSignature(null);
       await load();
     } catch (err: any) {
       setError(err.response?.data?.message ?? "Erro ao registrar entrega");
@@ -76,6 +83,20 @@ export function Assignments() {
     } catch (err: any) {
       setError(err.response?.data?.message ?? "Erro ao registrar devolução");
     }
+  }
+
+  // Baixa o PDF do termo. Como a rota exige token, buscamos via api (que
+  // anexa o Authorization) e geramos um download a partir do blob.
+  async function downloadTerm(id: string) {
+    const res = await api.get(`/assignments/${id}/term`, {
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `termo-${id}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -95,7 +116,7 @@ export function Assignments() {
             padding: 16,
             marginBottom: 24,
             display: "flex",
-            gap: 8,
+            gap: 16,
             flexWrap: "wrap",
             alignItems: "flex-end",
           }}
@@ -130,6 +151,7 @@ export function Assignments() {
               ))}
             </select>
           </div>
+          <SignaturePad onChange={setSignature} />
           <button type="submit">Registrar entrega</button>
         </form>
       )}
@@ -141,6 +163,7 @@ export function Assignments() {
             <th>Colaborador</th>
             <th>Entregue em</th>
             <th>Status</th>
+            <th>Termo</th>
             {isAdmin && <th>Ações</th>}
           </tr>
         </thead>
@@ -157,6 +180,15 @@ export function Assignments() {
               <td>{item.receiver.name}</td>
               <td>{new Date(item.assignedAt).toLocaleDateString("pt-BR")}</td>
               <td>{item.status}</td>
+              <td>
+                {item.termPdfPath ? (
+                  <button onClick={() => downloadTerm(item.id)}>
+                    Baixar termo
+                  </button>
+                ) : (
+                  <span style={{ color: "#aaa" }}>—</span>
+                )}
+              </td>
               {isAdmin && (
                 <td>
                   {item.status === "ACTIVE" && (
@@ -170,7 +202,7 @@ export function Assignments() {
           ))}
           {assignments.length === 0 && (
             <tr>
-              <td colSpan={isAdmin ? 5 : 4} style={{ padding: 16, color: "#666" }}>
+              <td colSpan={isAdmin ? 6 : 5} style={{ padding: 16, color: "#666" }}>
                 Nenhuma atribuição registrada ainda.
               </td>
             </tr>

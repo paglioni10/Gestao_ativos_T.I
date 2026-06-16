@@ -30,11 +30,11 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [x] Tela de Atribuições no frontend (entrega + devolução, só admin)
 - [ ] Histórico de posse por colaborador (tela dedicada — fica como melhoria; os dados já existem)
 
-## 🔨 Fase 3 — Termo de responsabilidade + auditoria
+## ✅ Fase 3 — Termo de responsabilidade + auditoria (feito)
 
-- [ ] Gerar PDF do termo na entrega (ex: lib `pdfkit`)
-- [ ] Captura de assinatura (canvas) e geração do `signatureHash`
-- [ ] Tela de consulta da trilha de auditoria
+- [x] Gerar PDF do termo na entrega (lib `pdfkit`, em `lib/term.ts`) + download (`GET /assignments/:id/term`)
+- [x] Captura de assinatura (canvas, `SignaturePad`) e geração do `signatureHash` (SHA-256)
+- [x] Tela de consulta da trilha de auditoria (`GET /api/audit`, página `Audit`)
 
 ## 🔨 Fase 4 — QR Code e manutenção
 
