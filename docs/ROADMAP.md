@@ -13,12 +13,12 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [x] Dashboard: métricas-resumo — completo
 - [x] Frontend: login, rota protegida, dashboard, lista de equipamentos
 
-## 🔨 Fase 1 — CRUD completo de equipamentos
+## ✅ Fase 1 — CRUD completo de equipamentos (feito)
 
-- [ ] `PUT /equipment/:id` — editar (implementar `equipmentService.update`)
-- [ ] `DELETE /equipment/:id` — baixar equipamento (status → RETIRED)
-- [ ] Formulário de cadastro/edição no frontend (visível só para admin)
-- [ ] Registrar `AuditLog` na criação/edição
+- [x] `PUT /equipment/:id` — editar (`equipmentService.update`)
+- [x] `DELETE /equipment/:id` — baixar equipamento (status → RETIRED, soft delete)
+- [x] Formulário de cadastro/edição no frontend (visível só para admin)
+- [x] Registrar `AuditLog` na criação/edição/baixa (helper `lib/audit.ts`)
 
 ## 🔨 Fase 2 — Entrega e devolução (núcleo do projeto)
 
@@ -40,6 +40,18 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [ ] Gerar QR Code do equipamento (lib `qrcode`, já nas dependências)
 - [ ] Escanear QR → abrir ficha/checkin do equipamento
 - [ ] CRUD de manutenções + alertas no dashboard
+
+## 🔐 Fase 4.5 — Cofre de senhas dos aparelhos
+
+> Registrar as senhas atuais de cada aparelho (BIOS, conta do SO, PIN, etc.).
+> **Atenção:** senha de aparelho precisa ser RECUPERÁVEL, então usa-se
+> **criptografia (AES-256-GCM)**, e NÃO hash (diferente do login de usuário).
+
+- [ ] Tabela `DeviceCredential` (label, username, segredo cifrado, iv, authTag) ligada a `Equipment`
+- [ ] Cifrar/decifrar com chave-mestra vinda do `.env` (em produção: KMS/cofre)
+- [ ] Acesso apenas para ADMIN; listagem nunca devolve o segredo
+- [ ] Endpoint separado de "revelar" senha
+- [ ] Cada revelação gera um `AuditLog` (quem viu qual senha e quando)
 
 ## 🚀 Fase 5 — Polimento e deploy
 
