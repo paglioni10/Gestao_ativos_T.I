@@ -30,8 +30,9 @@ export function Dashboard() {
         <button onClick={logout}>Sair</button>
       </header>
 
-      <nav style={{ margin: "16px 0" }}>
+      <nav style={{ margin: "16px 0", display: "flex", gap: 8 }}>
         <button onClick={() => navigate("/equipamentos")}>Equipamentos</button>
+        <button onClick={() => navigate("/atribuicoes")}>Atribuições</button>
       </nav>
 
       {summary ? (

@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
+import { z } from "zod";
 import { assignmentService } from "./assignment.service.js";
+
+const createSchema = z.object({
+  equipmentId: z.string().uuid(),
+  receiverId: z.string().uuid(),
+  notes: z.string().optional(),
+});
 
 export const assignmentController = {
   async list(_req: Request, res: Response) {
@@ -7,15 +14,17 @@ export const assignmentController = {
     return res.json(assignments);
   },
 
-  // TODO: validar body com zod e chamar assignmentService.create
-  async create(_req: Request, res: Response) {
-    const result = await assignmentService.create();
+  async create(req: Request, res: Response) {
+    const data = createSchema.parse(req.body);
+    const result = await assignmentService.create(data, req.user!.sub);
     return res.status(201).json(result);
   },
 
-  // TODO: chamar assignmentService.returnEquipment com o id da atribuição
-  async returnEquipment(_req: Request, res: Response) {
-    const result = await assignmentService.returnEquipment();
+  async returnEquipment(req: Request, res: Response) {
+    const result = await assignmentService.returnEquipment(
+      req.params.id,
+      req.user!.sub
+    );
     return res.json(result);
   },
 };

@@ -20,14 +20,15 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [x] Formulário de cadastro/edição no frontend (visível só para admin)
 - [x] Registrar `AuditLog` na criação/edição/baixa (helper `lib/audit.ts`)
 
-## 🔨 Fase 2 — Entrega e devolução (núcleo do projeto)
+## ✅ Fase 2 — Entrega e devolução (núcleo do projeto) (feito)
 
-- [ ] `assignmentService.create` — entregar equipamento (ver TODOs no arquivo)
-  - validar que o equipamento está `AVAILABLE`
-  - criar Assignment + mudar status para `ASSIGNED` numa **transação**
-- [ ] `assignmentService.returnEquipment` — registrar devolução
-- [ ] Telas de entrega/devolução no frontend
-- [ ] Histórico de posse por colaborador
+- [x] `assignmentService.create` — entregar equipamento
+  - valida que o equipamento está `AVAILABLE`
+  - cria Assignment + muda status para `ASSIGNED` numa **transação** (`prisma.$transaction`)
+  - grava `AuditLog` "ASSIGNMENT_CREATED"
+- [x] `assignmentService.returnEquipment` — registra devolução (transação inversa + auditoria)
+- [x] Tela de Atribuições no frontend (entrega + devolução, só admin)
+- [ ] Histórico de posse por colaborador (tela dedicada — fica como melhoria; os dados já existem)
 
 ## 🔨 Fase 3 — Termo de responsabilidade + auditoria
 

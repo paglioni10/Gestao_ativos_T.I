@@ -1,8 +1,15 @@
 import { AppError } from "../../lib/AppError.js";
+import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
 
+interface CreateAssignmentInput {
+  equipmentId: string;
+  receiverId: string;
+  notes?: string;
+}
+
 export const assignmentService = {
-  // Lista atribuições, opcionalmente filtrando por status.
+  // Lista atribuições, mais recentes primeiro.
   async list() {
     return prisma.assignment.findMany({
       orderBy: { assignedAt: "desc" },
@@ -13,21 +20,81 @@ export const assignmentService = {
     });
   },
 
-  // TODO (entrega): registrar entrega de um equipamento a um usuário.
-  // Regras a implementar:
-  //  1. Equipamento precisa existir e estar com status AVAILABLE.
-  //  2. Criar Assignment (status ACTIVE) ligando equipamento + receiver + admin.
-  //  3. Mudar o status do equipamento para ASSIGNED.
-  //  4. Idealmente envolver 2 e 3 numa transação (prisma.$transaction).
-  //  5. Registrar AuditLog "ASSIGNMENT_CREATED".
-  //  6. (extra) gerar o PDF do termo e salvar signatureHash.
-  async create() {
-    throw new AppError("Não implementado", 501);
+  // Registra a ENTREGA de um equipamento a um colaborador.
+  async create(
+    { equipmentId, receiverId, notes }: CreateAssignmentInput,
+    createdById: string
+  ) {
+    // 1. Validações de negócio antes de tocar no banco.
+    const equipment = await prisma.equipment.findUnique({
+      where: { id: equipmentId },
+    });
+    if (!equipment) {
+      throw new AppError("Equipamento não encontrado", 404);
+    }
+    if (equipment.status !== "AVAILABLE") {
+      throw new AppError("Equipamento não está disponível para entrega");
+    }
+
+    const receiver = await prisma.user.findUnique({ where: { id: receiverId } });
+    if (!receiver) {
+      throw new AppError("Colaborador não encontrado", 404);
+    }
+
+    // 2. As duas escritas precisam ser atômicas: ou as duas acontecem, ou
+    //    nenhuma. $transaction garante isso (se a 2ª falhar, a 1ª é desfeita).
+    const assignment = await prisma.$transaction(async (tx) => {
+      const created = await tx.assignment.create({
+        data: { equipmentId, receiverId, createdById, notes, status: "ACTIVE" },
+      });
+      await tx.equipment.update({
+        where: { id: equipmentId },
+        data: { status: "ASSIGNED" },
+      });
+      return created;
+    });
+
+    await recordAudit({
+      action: "ASSIGNMENT_CREATED",
+      entity: "Assignment",
+      entityId: assignment.id,
+      performedById: createdById,
+      metadata: { equipmentId, receiverId },
+    });
+    return assignment;
   },
 
-  // TODO (devolução): marcar uma atribuição como devolvida.
-  // Regras: setar returnedAt + status RETURNED e devolver equipamento p/ AVAILABLE.
-  async returnEquipment() {
-    throw new AppError("Não implementado", 501);
+  // Registra a DEVOLUÇÃO: encerra a atribuição e libera o equipamento.
+  async returnEquipment(assignmentId: string, performedById: string) {
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+    });
+    if (!assignment) {
+      throw new AppError("Atribuição não encontrada", 404);
+    }
+    if (assignment.status === "RETURNED") {
+      throw new AppError("Esta atribuição já foi devolvida");
+    }
+
+    // Mesma lógica de atomicidade da entrega, no sentido inverso.
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.assignment.update({
+        where: { id: assignmentId },
+        data: { status: "RETURNED", returnedAt: new Date() },
+      });
+      await tx.equipment.update({
+        where: { id: assignment.equipmentId },
+        data: { status: "AVAILABLE" },
+      });
+      return result;
+    });
+
+    await recordAudit({
+      action: "ASSIGNMENT_RETURNED",
+      entity: "Assignment",
+      entityId: assignmentId,
+      performedById,
+    });
+    return updated;
   },
 };

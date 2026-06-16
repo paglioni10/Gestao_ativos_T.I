@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
+import { Assignments } from "./pages/Assignments";
 import { Dashboard } from "./pages/Dashboard";
 import { Equipment } from "./pages/Equipment";
 import { Login } from "./pages/Login";
@@ -26,6 +27,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <Equipment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/atribuicoes"
+            element={
+              <ProtectedRoute>
+                <Assignments />
               </ProtectedRoute>
             }
           />
