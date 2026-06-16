@@ -5,6 +5,7 @@ import { Assignments } from "./pages/Assignments";
 import { Audit } from "./pages/Audit";
 import { Dashboard } from "./pages/Dashboard";
 import { Equipment } from "./pages/Equipment";
+import { EquipmentDetail } from "./pages/EquipmentDetail";
 import { Login } from "./pages/Login";
 
 // Define o mapa de rotas da aplicação.
@@ -28,6 +29,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <Equipment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/equipamentos/:id"
+            element={
+              <ProtectedRoute>
+                <EquipmentDetail />
               </ProtectedRoute>
             }
           />

@@ -14,6 +14,9 @@ equipmentRoutes.get("/", asyncHandler(equipmentController.list));
 // GET  /api/equipment/:id    -> detalhe + histórico
 equipmentRoutes.get("/:id", asyncHandler(equipmentController.getById));
 
+// GET  /api/equipment/:id/qrcode -> QR Code (data URL) da ficha do equipamento
+equipmentRoutes.get("/:id/qrcode", asyncHandler(equipmentController.qrCode));
+
 // POST /api/equipment        -> cria (apenas admin)
 equipmentRoutes.post("/", ensureAdmin, asyncHandler(equipmentController.create));
 

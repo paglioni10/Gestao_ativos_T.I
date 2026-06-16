@@ -158,7 +158,14 @@ export function Equipment() {
         <tbody>
           {items.map((item) => (
             <tr key={item.id} style={{ borderTop: "1px solid #ddd" }}>
-              <td>{item.name}</td>
+              <td>
+                <a
+                  onClick={() => navigate(`/equipamentos/${item.id}`)}
+                  style={{ color: "#0b66c3", cursor: "pointer" }}
+                >
+                  {item.name}
+                </a>
+              </td>
               <td>{item.type}</td>
               <td>{item.serialNumber}</td>
               <td>{item.status}</td>

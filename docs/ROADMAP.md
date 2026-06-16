@@ -36,11 +36,12 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [x] Captura de assinatura (canvas, `SignaturePad`) e geração do `signatureHash` (SHA-256)
 - [x] Tela de consulta da trilha de auditoria (`GET /api/audit`, página `Audit`)
 
-## 🔨 Fase 4 — QR Code e manutenção
+## ✅ Fase 4 — QR Code e manutenção (feito)
 
-- [ ] Gerar QR Code do equipamento (lib `qrcode`, já nas dependências)
-- [ ] Escanear QR → abrir ficha/checkin do equipamento
-- [ ] CRUD de manutenções + alertas no dashboard
+- [x] Gerar QR Code do equipamento (`GET /equipment/:id/qrcode`, lib `qrcode`)
+- [x] Escanear QR → abre a ficha do equipamento (página `EquipmentDetail`)
+- [x] CRUD de manutenções (agendar/concluir, módulo `maintenance`) com transação de status
+- [x] Alerta de manutenções atrasadas no dashboard (`overdueMaintenance`)
 
 ## 🔐 Fase 4.5 — Cofre de senhas dos aparelhos
 

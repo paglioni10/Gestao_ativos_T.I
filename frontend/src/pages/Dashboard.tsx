@@ -8,6 +8,7 @@ interface Summary {
   activeAssignments: number;
   overdueAssignments: number;
   upcomingMaintenance: number;
+  overdueMaintenance: number;
 }
 
 // Tela inicial com os números-resumo vindos de /dashboard/summary.
@@ -44,6 +45,11 @@ export function Dashboard() {
           <Card label="Atrasados" value={summary.overdueAssignments} />
           <Card label="Manutenções próximas" value={summary.upcomingMaintenance} />
           <Card
+            label="Manutenções atrasadas"
+            value={summary.overdueMaintenance}
+            alert={summary.overdueMaintenance > 0}
+          />
+          <Card
             label="Disponíveis"
             value={summary.equipmentByStatus.AVAILABLE ?? 0}
           />
@@ -55,18 +61,30 @@ export function Dashboard() {
   );
 }
 
-function Card({ label, value }: { label: string; value: number }) {
+function Card({
+  label,
+  value,
+  alert = false,
+}: {
+  label: string;
+  value: number;
+  alert?: boolean;
+}) {
   return (
     <div
       style={{
-        background: "#fff",
+        background: alert ? "#fdecea" : "#fff",
         borderRadius: 8,
         padding: 20,
         minWidth: 160,
         boxShadow: "0 1px 3px rgba(0,0,0,.1)",
       }}
     >
-      <div style={{ fontSize: 32, fontWeight: 700 }}>{value}</div>
+      <div
+        style={{ fontSize: 32, fontWeight: 700, color: alert ? "crimson" : undefined }}
+      >
+        {value}
+      </div>
       <div style={{ color: "#666" }}>{label}</div>
     </div>
   );

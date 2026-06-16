@@ -1,8 +1,9 @@
-import type { EquipmentType } from "@prisma/client";
+import type { EquipmentStatus, EquipmentType } from "@prisma/client";
+import QRCode from "qrcode";
+import { env } from "../../config/env.js";
 import { AppError } from "../../lib/AppError.js";
 import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
-import type { EquipmentStatus } from "@prisma/client";
 
 interface CreateEquipmentInput {
   name: string;
@@ -26,7 +27,7 @@ export const equipmentService = {
     });
   },
 
-  // Busca um equipamento e inclui suas atribuições (histórico de posse).
+  // Busca um equipamento e inclui histórico de posse e de manutenções.
   async getById(id: string) {
     const equipment = await prisma.equipment.findUnique({
       where: { id },
@@ -35,12 +36,22 @@ export const equipmentService = {
           orderBy: { assignedAt: "desc" },
           include: { receiver: { select: { id: true, name: true } } },
         },
+        maintenances: { orderBy: { scheduledFor: "desc" } },
       },
     });
     if (!equipment) {
       throw new AppError("Equipamento não encontrado", 404);
     }
     return equipment;
+  },
+
+  // Gera um QR Code (data URL PNG) que aponta para a ficha do equipamento.
+  // Escanear o código abre a página de detalhe no frontend.
+  async getQrCode(id: string) {
+    await this.getById(id); // garante que o equipamento existe
+    const url = `${env.corsOrigin}/equipamentos/${id}`;
+    const qrCode = await QRCode.toDataURL(url, { width: 240, margin: 1 });
+    return { url, qrCode };
   },
 
   // Cria um equipamento. O serialNumber é único (validado pelo banco).

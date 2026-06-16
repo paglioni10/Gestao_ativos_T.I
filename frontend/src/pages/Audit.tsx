@@ -18,6 +18,8 @@ const ACTION_LABELS: Record<string, string> = {
   EQUIPMENT_RETIRED: "Equipamento baixado",
   ASSIGNMENT_CREATED: "Entrega registrada",
   ASSIGNMENT_RETURNED: "Devolução registrada",
+  MAINTENANCE_SCHEDULED: "Manutenção agendada",
+  MAINTENANCE_COMPLETED: "Manutenção concluída",
 };
 
 export function Audit() {

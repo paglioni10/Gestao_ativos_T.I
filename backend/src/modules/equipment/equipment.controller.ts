@@ -44,6 +44,11 @@ export const equipmentController = {
     return res.json(equipment);
   },
 
+  async qrCode(req: Request, res: Response) {
+    const result = await equipmentService.getQrCode(req.params.id);
+    return res.json(result);
+  },
+
   async create(req: Request, res: Response) {
     const data = createSchema.parse(req.body);
     const equipment = await equipmentService.create(data, req.user!.sub);

@@ -6,22 +6,31 @@ export const dashboardService = {
   async summary() {
     const now = new Date();
 
-    const [byStatus, activeAssignments, overdueAssignments, upcomingMaintenance] =
-      await Promise.all([
-        // Contagem de equipamentos agrupada por status.
-        prisma.equipment.groupBy({
-          by: ["status"],
-          _count: { _all: true },
-        }),
-        // Equipamentos atualmente em poder de alguém.
-        prisma.assignment.count({ where: { status: "ACTIVE" } }),
-        // Atribuições marcadas como atrasadas.
-        prisma.assignment.count({ where: { status: "OVERDUE" } }),
-        // Manutenções programadas e ainda não concluídas.
-        prisma.maintenanceRecord.count({
-          where: { completedAt: null, scheduledFor: { gte: now } },
-        }),
-      ]);
+    const [
+      byStatus,
+      activeAssignments,
+      overdueAssignments,
+      upcomingMaintenance,
+      overdueMaintenance,
+    ] = await Promise.all([
+      // Contagem de equipamentos agrupada por status.
+      prisma.equipment.groupBy({
+        by: ["status"],
+        _count: { _all: true },
+      }),
+      // Equipamentos atualmente em poder de alguém.
+      prisma.assignment.count({ where: { status: "ACTIVE" } }),
+      // Atribuições marcadas como atrasadas.
+      prisma.assignment.count({ where: { status: "OVERDUE" } }),
+      // Manutenções programadas e ainda não concluídas (futuras).
+      prisma.maintenanceRecord.count({
+        where: { completedAt: null, scheduledFor: { gte: now } },
+      }),
+      // Manutenções não concluídas cujo prazo já passou (alerta!).
+      prisma.maintenanceRecord.count({
+        where: { completedAt: null, scheduledFor: { lt: now } },
+      }),
+    ]);
 
     // Transforma o groupBy em um objeto { AVAILABLE: n, ASSIGNED: n, ... }
     const equipmentByStatus = Object.fromEntries(
@@ -33,6 +42,7 @@ export const dashboardService = {
       activeAssignments,
       overdueAssignments,
       upcomingMaintenance,
+      overdueMaintenance,
     };
   },
 };
