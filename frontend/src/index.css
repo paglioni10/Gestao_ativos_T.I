@@ -22,11 +22,43 @@
   --gray-bg: #eceff3;
   --gray-fg: #5b6573;
 
+  --input-bg: #ffffff;
+  --hover-bg: #fafbfc;
+
   --radius: 10px;
   --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
 
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
+}
+
+/* ---- Tema escuro: sobrescreve as variáveis quando data-theme="dark" ---- */
+[data-theme="dark"] {
+  --bg: #0f141a;
+  --surface: #1a2129;
+  --border: #2b333d;
+  --text: #e5e9ef;
+  --muted: #9aa4b2;
+  --primary: #3b82f6;
+  --primary-hover: #2f6fe0;
+  --danger: #f87171;
+  --danger-bg: #3a1f1f;
+
+  --green-bg: #14361f;
+  --green-fg: #5fd08a;
+  --blue-bg: #16263f;
+  --blue-fg: #7fb0f5;
+  --amber-bg: #3a2f12;
+  --amber-fg: #e0b357;
+  --red-bg: #3a1d1d;
+  --red-fg: #f08a8a;
+  --gray-bg: #262d36;
+  --gray-fg: #aab3c0;
+
+  --input-bg: #11171e;
+  --hover-bg: #20272f;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -37,6 +69,7 @@ body {
   margin: 0;
   background: var(--bg);
   line-height: 1.5;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 h1 {
@@ -244,7 +277,7 @@ select {
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--input-bg);
   color: var(--text);
   min-width: 160px;
 }
@@ -279,7 +312,7 @@ select:focus {
   border-bottom: none;
 }
 .table tbody tr:hover {
-  background: #fafbfc;
+  background: var(--hover-bg);
 }
 .empty {
   padding: 20px 12px;

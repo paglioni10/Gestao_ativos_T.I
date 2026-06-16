@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { ThemeToggle } from "./ThemeToggle";
 
 // Casca da aplicação: barra de navegação fixa + área de conteúdo.
 export function Layout({ children }: { children: ReactNode }) {
@@ -26,6 +27,7 @@ export function Layout({ children }: { children: ReactNode }) {
             {user?.role === "ADMIN" && <NavLink to="/auditoria">Auditoria</NavLink>}
           </nav>
           <div className="topbar-user">
+            <ThemeToggle />
             <span>{user?.name}</span>
             <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
               Sair

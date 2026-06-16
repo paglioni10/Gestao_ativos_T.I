@@ -65,8 +65,8 @@ export function SignaturePad({ onChange }: Props) {
         onPointerUp={end}
         onPointerLeave={end}
       />
-      <div>
-        <button type="button" onClick={clear}>
+      <div style={{ marginTop: 6 }}>
+        <button type="button" className="btn btn-sm btn-ghost" onClick={clear}>
           Limpar assinatura
         </button>
       </div>
