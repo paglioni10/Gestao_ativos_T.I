@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Logo } from "../components/Logo";
 import { useAuth } from "../contexts/AuthContext";
 
 // Tela de login centralizada.
@@ -24,10 +25,17 @@ export function Login() {
   return (
     <div className="center-screen">
       <div className="panel" style={{ width: 360, marginBottom: 0 }}>
-        <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <div style={{ fontSize: 32 }}>📦</div>
-          <h1>Gestão de Ativos</h1>
-          <p className="muted">Entre para continuar</p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            marginBottom: 20,
+          }}
+        >
+          <Logo size={44} />
+          <p className="muted">Gestão de Ativos de TI</p>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="field" style={{ marginBottom: 12 }}>

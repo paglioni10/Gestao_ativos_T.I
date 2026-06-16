@@ -1,7 +1,8 @@
-# 📦 Gestão de Ativos de TI
+# 📦 T.I STORAGE
 
-Sistema para controlar a entrega, devolução e responsabilidade sobre
-equipamentos corporativos (notebooks, celulares, monitores, ferramentas).
+**Gestão de Ativos de TI** — sistema para controlar a entrega, devolução e
+responsabilidade sobre equipamentos corporativos (notebooks, celulares,
+monitores, ferramentas).
 
 > **A dor que resolve:** na maioria das empresas ninguém sabe ao certo quem
 > está com qual equipamento. Este sistema centraliza o controle, registra um

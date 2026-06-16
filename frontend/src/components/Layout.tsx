@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
 // Casca da aplicação: barra de navegação fixa + área de conteúdo.
@@ -17,7 +18,9 @@ export function Layout({ children }: { children: ReactNode }) {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <div className="topbar-brand">📦 Gestão de Ativos</div>
+          <div className="topbar-brand">
+            <Logo />
+          </div>
           <nav className="topbar-nav">
             <NavLink to="/" end>
               Visão geral
