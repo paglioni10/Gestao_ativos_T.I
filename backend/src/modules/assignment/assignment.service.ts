@@ -73,6 +73,7 @@ export const assignmentService = {
     const termPdfPath = await generateTermPdf({
       assignmentId: assignment.id,
       equipmentName: equipment.name,
+      equipmentType: equipment.type,
       equipmentSerial: equipment.serialNumber,
       receiverName: receiver.name,
       assignedAt: assignment.assignedAt,
