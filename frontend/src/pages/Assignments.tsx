@@ -105,8 +105,9 @@ export function Assignments() {
           <div className="split-form">
             <div className="fields">
               <div className="field">
-                <label>Equipamento disponível</label>
+                <label htmlFor="as-equipment">Equipamento disponível</label>
                 <select
+                  id="as-equipment"
                   value={form.equipmentId}
                   onChange={(e) => setForm({ ...form, equipmentId: e.target.value })}
                   required
@@ -120,8 +121,9 @@ export function Assignments() {
                 </select>
               </div>
               <div className="field">
-                <label>Colaborador</label>
+                <label htmlFor="as-receiver">Colaborador</label>
                 <select
+                  id="as-receiver"
                   value={form.receiverId}
                   onChange={(e) => setForm({ ...form, receiverId: e.target.value })}
                   required
@@ -149,12 +151,12 @@ export function Assignments() {
         <table className="table">
           <thead>
             <tr>
-              <th>Equipamento</th>
-              <th>Colaborador</th>
-              <th>Entregue em</th>
-              <th>Status</th>
-              <th>Termo</th>
-              {isAdmin && <th>Ações</th>}
+              <th scope="col">Equipamento</th>
+              <th scope="col">Colaborador</th>
+              <th scope="col">Entregue em</th>
+              <th scope="col">Status</th>
+              <th scope="col">Termo</th>
+              {isAdmin && <th scope="col">Ações</th>}
             </tr>
           </thead>
           <tbody>

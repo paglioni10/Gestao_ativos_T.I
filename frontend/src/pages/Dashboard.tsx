@@ -111,7 +111,9 @@ function Stat({
 }) {
   return (
     <div className={`stat-card${alert ? " alert" : ""}`}>
-      <div className={`stat-icon tone-${tone}`}>{icon}</div>
+      <div className={`stat-icon tone-${tone}`} aria-hidden="true">
+        {icon}
+      </div>
       <div className="stat-value">{value}</div>
       <div className="stat-label">{label}</div>
       {detail && <div className="stat-detail">{detail}</div>}

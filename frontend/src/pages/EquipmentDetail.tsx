@@ -138,9 +138,9 @@ export function EquipmentDetail() {
 
   return (
     <div>
-      <a className="back-link" onClick={() => navigate(-1)}>
+      <button type="button" className="back-link" onClick={() => navigate(-1)}>
         ← Voltar
-      </a>
+      </button>
       <h1>{equipment.name}</h1>
 
       {error && <p className="alert-error">{error}</p>}
@@ -172,16 +172,18 @@ export function EquipmentDetail() {
         <form className="panel" onSubmit={scheduleMaintenance}>
           <div className="form-row">
             <div className="field">
-              <label>Descrição</label>
+              <label htmlFor="mt-description">Descrição</label>
               <input
+                id="mt-description"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 required
               />
             </div>
             <div className="field">
-              <label>Data prevista</label>
+              <label htmlFor="mt-date">Data prevista</label>
               <input
+                id="mt-date"
                 type="date"
                 value={form.scheduledFor}
                 onChange={(e) => setForm({ ...form, scheduledFor: e.target.value })}
@@ -199,10 +201,10 @@ export function EquipmentDetail() {
         <table className="table">
           <thead>
             <tr>
-              <th>Descrição</th>
-              <th>Prevista para</th>
-              <th>Situação</th>
-              {isAdmin && <th>Ações</th>}
+              <th scope="col">Descrição</th>
+              <th scope="col">Prevista para</th>
+              <th scope="col">Situação</th>
+              {isAdmin && <th scope="col">Ações</th>}
             </tr>
           </thead>
           <tbody>
@@ -259,8 +261,9 @@ export function EquipmentDetail() {
           <form className="panel" onSubmit={addCredential}>
             <div className="form-row">
               <div className="field">
-                <label>Rótulo</label>
+                <label htmlFor="cred-label">Rótulo</label>
                 <input
+                  id="cred-label"
                   value={credForm.label}
                   onChange={(e) => setCredForm({ ...credForm, label: e.target.value })}
                   placeholder="Senha BIOS"
@@ -268,8 +271,9 @@ export function EquipmentDetail() {
                 />
               </div>
               <div className="field">
-                <label>Usuário (opcional)</label>
+                <label htmlFor="cred-username">Usuário (opcional)</label>
                 <input
+                  id="cred-username"
                   value={credForm.username}
                   onChange={(e) =>
                     setCredForm({ ...credForm, username: e.target.value })
@@ -277,8 +281,9 @@ export function EquipmentDetail() {
                 />
               </div>
               <div className="field">
-                <label>Senha</label>
+                <label htmlFor="cred-secret">Senha</label>
                 <input
+                  id="cred-secret"
                   type="password"
                   value={credForm.secret}
                   onChange={(e) =>
@@ -297,10 +302,10 @@ export function EquipmentDetail() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Rótulo</th>
-                  <th>Usuário</th>
-                  <th>Senha</th>
-                  <th>Ações</th>
+                  <th scope="col">Rótulo</th>
+                  <th scope="col">Usuário</th>
+                  <th scope="col">Senha</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -356,10 +361,10 @@ export function EquipmentDetail() {
         <table className="table">
           <thead>
             <tr>
-              <th>Colaborador</th>
-              <th>Entregue em</th>
-              <th>Devolvido em</th>
-              <th>Status</th>
+              <th scope="col">Colaborador</th>
+              <th scope="col">Entregue em</th>
+              <th scope="col">Devolvido em</th>
+              <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>

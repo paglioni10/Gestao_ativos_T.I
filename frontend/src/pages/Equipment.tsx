@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Badge } from "../components/Badge";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
@@ -25,7 +25,6 @@ const TYPES = [
 const emptyForm = { name: "", type: "NOTEBOOK", serialNumber: "" };
 
 export function Equipment() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
 
@@ -91,16 +90,18 @@ export function Equipment() {
         <form className="panel" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="field">
-              <label>Nome</label>
+              <label htmlFor="eq-name">Nome</label>
               <input
+                id="eq-name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
               />
             </div>
             <div className="field">
-              <label>Tipo</label>
+              <label htmlFor="eq-type">Tipo</label>
               <select
+                id="eq-type"
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
               >
@@ -112,8 +113,9 @@ export function Equipment() {
               </select>
             </div>
             <div className="field">
-              <label>Nº de série</label>
+              <label htmlFor="eq-serial">Nº de série</label>
               <input
+                id="eq-serial"
                 value={form.serialNumber}
                 onChange={(e) => setForm({ ...form, serialNumber: e.target.value })}
                 required
@@ -135,20 +137,18 @@ export function Equipment() {
         <table className="table">
           <thead>
             <tr>
-              <th>Nome</th>
-              <th>Tipo</th>
-              <th>Nº de série</th>
-              <th>Status</th>
-              {isAdmin && <th>Ações</th>}
+              <th scope="col">Nome</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Nº de série</th>
+              <th scope="col">Status</th>
+              {isAdmin && <th scope="col">Ações</th>}
             </tr>
           </thead>
           <tbody>
             {items.map((item) => (
               <tr key={item.id}>
                 <td>
-                  <a onClick={() => navigate(`/equipamentos/${item.id}`)}>
-                    {item.name}
-                  </a>
+                  <Link to={`/equipamentos/${item.id}`}>{item.name}</Link>
                 </td>
                 <td>{item.type}</td>
                 <td>{item.serialNumber}</td>

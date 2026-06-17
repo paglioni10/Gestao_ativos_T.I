@@ -55,8 +55,12 @@ export function Audit() {
       <p className="muted">Registro imutável de quem fez o quê e quando</p>
 
       <div className="field" style={{ maxWidth: 260, marginBottom: 16 }}>
-        <label>Filtrar por equipamento</label>
-        <select value={type} onChange={(e) => setType(e.target.value)}>
+        <label htmlFor="audit-filter">Filtrar por equipamento</label>
+        <select
+          id="audit-filter"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+        >
           {TYPES.map((t) => (
             <option key={t.value} value={t.value}>
               {t.label}
@@ -69,10 +73,10 @@ export function Audit() {
         <table className="table">
           <thead>
             <tr>
-              <th>Quando</th>
-              <th>Ação</th>
-              <th>Equipamento</th>
-              <th>Por</th>
+              <th scope="col">Quando</th>
+              <th scope="col">Ação</th>
+              <th scope="col">Equipamento</th>
+              <th scope="col">Por</th>
             </tr>
           </thead>
           <tbody>

@@ -64,13 +64,13 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [x] Modo escuro com alternância persistida (`ThemeToggle`)
 - [ ] Ajustes visuais adicionais (a definir)
 
-## ♿ Fase 6 — Acessibilidade mínima
+## ✅ Fase 6 — Acessibilidade mínima (feito)
 
-- [ ] Labels associados aos inputs (`htmlFor`/`id`)
-- [ ] `aria-label`/`title` em botões só com ícone e textos alternativos em imagens
-- [ ] Estados de foco visíveis e navegação por teclado
-- [ ] Contraste de cores adequado (claro e escuro)
-- [ ] HTML semântico e `scope`/`caption` em tabelas
+- [x] Labels associados aos inputs (`htmlFor`/`id`); canvas da assinatura com `aria-label`
+- [x] `aria-label`/`title` em botões só com ícone; ícones decorativos com `aria-hidden`; imagens com `alt`
+- [x] Estados de foco visíveis (`:focus-visible`) e navegação por teclado (links/botões reais)
+- [x] Contraste de cores ajustado (texto secundário AA no claro e escuro)
+- [x] HTML semântico e `scope="col"` nas tabelas
 
 ## 🚀 Fase 7 — Deploy e conferência final
 

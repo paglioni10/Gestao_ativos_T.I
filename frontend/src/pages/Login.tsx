@@ -39,18 +39,22 @@ export function Login() {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="field" style={{ marginBottom: 12 }}>
-            <label>E-mail</label>
+            <label htmlFor="login-email">E-mail</label>
             <input
+              id="login-email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={{ width: "100%" }}
             />
           </div>
           <div className="field" style={{ marginBottom: 16 }}>
-            <label>Senha</label>
+            <label htmlFor="login-password">Senha</label>
             <input
+              id="login-password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{ width: "100%" }}

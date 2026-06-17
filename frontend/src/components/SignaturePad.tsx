@@ -51,11 +51,13 @@ export function SignaturePad({ onChange, width = 300, height = 120 }: Props) {
 
   return (
     <div>
-      <label style={{ display: "block", fontSize: 13, color: "var(--muted)", fontWeight: 500, marginBottom: 4 }}>
+      <span style={{ display: "block", fontSize: 13, color: "var(--muted)", fontWeight: 500, marginBottom: 4 }}>
         Assinatura do colaborador
-      </label>
+      </span>
       <canvas
         ref={canvasRef}
+        role="img"
+        aria-label="Área para desenhar a assinatura do colaborador"
         width={width}
         height={height}
         style={{
