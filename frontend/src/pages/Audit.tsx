@@ -8,6 +8,7 @@ interface AuditLog {
   entityId: string;
   createdAt: string;
   performedBy: { name: string } | null;
+  equipment: { name: string; type: string } | null;
 }
 
 // Rótulo + tom de cor por tipo de ação.
@@ -24,17 +25,45 @@ const ACTIONS: Record<string, { label: string; tone: string }> = {
   CREDENTIAL_DELETED: { label: "Senha removida do cofre", tone: "gray" },
 };
 
+// Tipos de equipamento para o filtro (valor da API -> rótulo em PT).
+const TYPES: { value: string; label: string }[] = [
+  { value: "", label: "Todos os equipamentos" },
+  { value: "NOTEBOOK", label: "Notebook" },
+  { value: "DESKTOP", label: "Desktop" },
+  { value: "MONITOR", label: "Monitor" },
+  { value: "PHONE", label: "Celular" },
+  { value: "PERIPHERAL", label: "Periférico" },
+  { value: "TOOL", label: "Ferramenta" },
+  { value: "OTHER", label: "Outro" },
+];
+
 export function Audit() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [type, setType] = useState("");
 
   useEffect(() => {
-    api.get<AuditLog[]>("/audit").then((res) => setLogs(res.data));
-  }, []);
+    api
+      .get<AuditLog[]>("/audit", {
+        params: type ? { equipmentType: type } : undefined,
+      })
+      .then((res) => setLogs(res.data));
+  }, [type]);
 
   return (
     <div>
       <h1>Trilha de auditoria</h1>
       <p className="muted">Registro imutável de quem fez o quê e quando</p>
+
+      <div className="field" style={{ maxWidth: 260, marginBottom: 16 }}>
+        <label>Filtrar por equipamento</label>
+        <select value={type} onChange={(e) => setType(e.target.value)}>
+          {TYPES.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="panel" style={{ padding: 0 }}>
         <table className="table">
@@ -42,7 +71,7 @@ export function Audit() {
             <tr>
               <th>Quando</th>
               <th>Ação</th>
-              <th>Entidade</th>
+              <th>Equipamento</th>
               <th>Por</th>
             </tr>
           </thead>
@@ -57,7 +86,7 @@ export function Audit() {
                       {conf?.label ?? log.action}
                     </span>
                   </td>
-                  <td>{log.entity}</td>
+                  <td>{log.equipment?.name ?? "—"}</td>
                   <td>{log.performedBy?.name ?? "—"}</td>
                 </tr>
               );
@@ -65,7 +94,7 @@ export function Audit() {
             {logs.length === 0 && (
               <tr>
                 <td colSpan={4} className="empty">
-                  Nenhum registro ainda.
+                  Nenhum registro para este filtro.
                 </td>
               </tr>
             )}

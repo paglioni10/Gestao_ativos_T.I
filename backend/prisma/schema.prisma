@@ -59,6 +59,7 @@ model Equipment {
   assignments  Assignment[]
   maintenances MaintenanceRecord[]
   credentials  DeviceCredential[]
+  auditLogs    AuditLog[]
 }
 
 enum EquipmentType {
@@ -142,6 +143,11 @@ model AuditLog {
 
   performedBy   User?   @relation(fields: [performedById], references: [id])
   performedById String?
+
+  // Equipamento relacionado ao evento (quando houver), permitindo filtrar
+  // a trilha por tipo de equipamento (notebook, celular, etc.).
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+  equipmentId String?
 }
 
 // ---------------------------------------------------------------------------

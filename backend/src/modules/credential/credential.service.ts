@@ -43,6 +43,7 @@ export const credentialService = {
       action: "CREDENTIAL_CREATED",
       entity: "DeviceCredential",
       entityId: credential.id,
+      equipmentId,
       performedById,
       metadata: { equipmentId, label },
     });
@@ -69,6 +70,7 @@ export const credentialService = {
       action: "CREDENTIAL_REVEALED",
       entity: "DeviceCredential",
       entityId: id,
+      equipmentId: credential.equipmentId,
       performedById,
       metadata: { equipmentId: credential.equipmentId, label: credential.label },
     });
@@ -89,6 +91,7 @@ export const credentialService = {
       action: "CREDENTIAL_DELETED",
       entity: "DeviceCredential",
       entityId: id,
+      equipmentId: credential.equipmentId,
       performedById,
     });
   },

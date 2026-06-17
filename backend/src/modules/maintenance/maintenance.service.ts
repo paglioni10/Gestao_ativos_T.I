@@ -55,6 +55,7 @@ export const maintenanceService = {
       action: "MAINTENANCE_SCHEDULED",
       entity: "Equipment",
       entityId: equipmentId,
+      equipmentId,
       performedById,
       metadata: { maintenanceId: record.id, description },
     });
@@ -87,6 +88,7 @@ export const maintenanceService = {
       action: "MAINTENANCE_COMPLETED",
       entity: "Equipment",
       entityId: record.equipmentId,
+      equipmentId: record.equipmentId,
       performedById,
       metadata: { maintenanceId: id },
     });

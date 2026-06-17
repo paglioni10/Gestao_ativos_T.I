@@ -90,6 +90,7 @@ export const assignmentService = {
       action: "ASSIGNMENT_CREATED",
       entity: "Assignment",
       entityId: assignment.id,
+      equipmentId,
       performedById: createdById,
       metadata: { equipmentId, receiverId },
     });
@@ -125,6 +126,7 @@ export const assignmentService = {
       action: "ASSIGNMENT_RETURNED",
       entity: "Assignment",
       entityId: assignmentId,
+      equipmentId: assignment.equipmentId,
       performedById,
     });
     return updated;

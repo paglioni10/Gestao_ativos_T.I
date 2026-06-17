@@ -68,6 +68,7 @@ export const equipmentService = {
       action: "EQUIPMENT_CREATED",
       entity: "Equipment",
       entityId: equipment.id,
+      equipmentId: equipment.id,
       performedById,
       metadata: { name: equipment.name, serialNumber: equipment.serialNumber },
     });
@@ -98,6 +99,7 @@ export const equipmentService = {
       action: "EQUIPMENT_UPDATED",
       entity: "Equipment",
       entityId: id,
+      equipmentId: id,
       performedById,
       metadata: { changes: data },
     });
@@ -126,6 +128,7 @@ export const equipmentService = {
       action: "EQUIPMENT_RETIRED",
       entity: "Equipment",
       entityId: id,
+      equipmentId: id,
       performedById,
     });
     return updated;
