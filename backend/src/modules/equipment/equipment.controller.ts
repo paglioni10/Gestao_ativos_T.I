@@ -4,15 +4,7 @@ import { equipmentService } from "./equipment.service.js";
 
 const createSchema = z.object({
   name: z.string().min(2),
-  type: z.enum([
-    "NOTEBOOK",
-    "DESKTOP",
-    "MONITOR",
-    "PHONE",
-    "PERIPHERAL",
-    "TOOL",
-    "OTHER",
-  ]),
+  typeId: z.string().uuid(),
   serialNumber: z.string().min(1),
   purchaseDate: z.coerce.date().optional(),
   warrantyUntil: z.coerce.date().optional(),

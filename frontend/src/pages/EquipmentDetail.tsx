@@ -29,7 +29,7 @@ interface AssignmentLite {
 interface EquipmentDetail {
   id: string;
   name: string;
-  type: string;
+  type: { name: string };
   serialNumber: string;
   status: string;
   assignments: AssignmentLite[];
@@ -149,7 +149,7 @@ export function EquipmentDetail() {
         <div style={{ display: "grid", gap: 6, alignContent: "start" }}>
           <div>
             <span className="muted">Tipo: </span>
-            {equipment.type}
+            {equipment.type.name}
           </div>
           <div>
             <span className="muted">Nº de série: </span>

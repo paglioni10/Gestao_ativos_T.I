@@ -4,38 +4,42 @@ import { Badge } from "../components/Badge";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
+interface EquipmentType {
+  id: string;
+  name: string;
+}
+
 interface Equipment {
   id: string;
   name: string;
-  type: string;
+  type: EquipmentType;
   serialNumber: string;
   status: string;
 }
-
-const TYPES = [
-  "NOTEBOOK",
-  "DESKTOP",
-  "MONITOR",
-  "PHONE",
-  "PERIPHERAL",
-  "TOOL",
-  "OTHER",
-];
-
-const emptyForm = { name: "", type: "NOTEBOOK", serialNumber: "" };
 
 export function Equipment() {
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
 
   const [items, setItems] = useState<Equipment[]>([]);
-  const [form, setForm] = useState(emptyForm);
+  const [types, setTypes] = useState<EquipmentType[]>([]);
+  const [form, setForm] = useState({ name: "", typeId: "", serialNumber: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
+  // Cadastro de novo tipo
+  const [addingType, setAddingType] = useState(false);
+  const [newType, setNewType] = useState("");
+
   async function load() {
-    const res = await api.get<Equipment[]>("/equipment");
-    setItems(res.data);
+    const [eq, tp] = await Promise.all([
+      api.get<Equipment[]>("/equipment"),
+      api.get<EquipmentType[]>("/equipment-types"),
+    ]);
+    setItems(eq.data);
+    setTypes(tp.data);
+    // Seleciona um tipo padrão se ainda não houver um escolhido.
+    setForm((f) => (f.typeId ? f : { ...f, typeId: tp.data[0]?.id ?? "" }));
   }
 
   useEffect(() => {
@@ -60,7 +64,7 @@ export function Equipment() {
 
   function handleEdit(item: Equipment) {
     setEditingId(item.id);
-    setForm({ name: item.name, type: item.type, serialNumber: item.serialNumber });
+    setForm({ name: item.name, typeId: item.type.id, serialNumber: item.serialNumber });
   }
 
   async function handleDelete(item: Equipment) {
@@ -74,9 +78,28 @@ export function Equipment() {
     }
   }
 
+  // Cadastra um novo tipo e já o seleciona no formulário.
+  async function saveType() {
+    setError("");
+    try {
+      const res = await api.post<EquipmentType>("/equipment-types", {
+        name: newType,
+      });
+      setNewType("");
+      setAddingType(false);
+      const tp = await api.get<EquipmentType[]>("/equipment-types");
+      setTypes(tp.data);
+      setForm((f) => ({ ...f, typeId: res.data.id }));
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? "Erro ao cadastrar tipo");
+    }
+  }
+
   function resetForm() {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({ name: "", typeId: types[0]?.id ?? "", serialNumber: "" });
+    setAddingType(false);
+    setNewType("");
   }
 
   return (
@@ -102,12 +125,13 @@ export function Equipment() {
               <label htmlFor="eq-type">Tipo</label>
               <select
                 id="eq-type"
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
+                value={form.typeId}
+                onChange={(e) => setForm({ ...form, typeId: e.target.value })}
+                required
               >
-                {TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                {types.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
                   </option>
                 ))}
               </select>
@@ -127,6 +151,44 @@ export function Equipment() {
             {editingId && (
               <button type="button" className="btn" onClick={resetForm}>
                 Cancelar
+              </button>
+            )}
+          </div>
+
+          {/* Cadastro de novo tipo */}
+          <div style={{ marginTop: 12 }}>
+            {addingType ? (
+              <div className="form-row">
+                <div className="field">
+                  <label htmlFor="new-type">Novo tipo</label>
+                  <input
+                    id="new-type"
+                    value={newType}
+                    onChange={(e) => setNewType(e.target.value)}
+                    placeholder="Ex.: Tablet"
+                  />
+                </div>
+                <button type="button" className="btn btn-primary" onClick={saveType}>
+                  Salvar tipo
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => {
+                    setAddingType(false);
+                    setNewType("");
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => setAddingType(true)}
+              >
+                + Cadastrar novo tipo
               </button>
             )}
           </div>
@@ -150,7 +212,7 @@ export function Equipment() {
                 <td>
                   <Link to={`/equipamentos/${item.id}`}>{item.name}</Link>
                 </td>
-                <td>{item.type}</td>
+                <td>{item.type.name}</td>
                 <td>{item.serialNumber}</td>
                 <td>
                   <Badge status={item.status} />

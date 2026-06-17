@@ -47,7 +47,6 @@ enum Role {
 model Equipment {
   id            String          @id @default(uuid())
   name          String
-  type          EquipmentType
   serialNumber  String          @unique
   status        EquipmentStatus @default(AVAILABLE)
   purchaseDate  DateTime?
@@ -56,20 +55,22 @@ model Equipment {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
+  // Tipo agora é uma tabela própria, permitindo cadastrar novos tipos.
+  type   EquipmentType @relation(fields: [typeId], references: [id])
+  typeId String
+
   assignments  Assignment[]
   maintenances MaintenanceRecord[]
   credentials  DeviceCredential[]
   auditLogs    AuditLog[]
 }
 
-enum EquipmentType {
-  NOTEBOOK
-  DESKTOP
-  MONITOR
-  PHONE
-  PERIPHERAL
-  TOOL
-  OTHER
+// Tipos de equipamento (notebook, celular, etc.). Cadastráveis em runtime.
+model EquipmentType {
+  id        String      @id @default(uuid())
+  name      String      @unique
+  createdAt DateTime    @default(now())
+  equipments Equipment[]
 }
 
 enum EquipmentStatus {

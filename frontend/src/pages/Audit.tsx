@@ -8,7 +8,12 @@ interface AuditLog {
   entityId: string;
   createdAt: string;
   performedBy: { name: string } | null;
-  equipment: { name: string; type: string } | null;
+  equipment: { name: string } | null;
+}
+
+interface EquipmentType {
+  id: string;
+  name: string;
 }
 
 // Rótulo + tom de cor por tipo de ação.
@@ -25,29 +30,22 @@ const ACTIONS: Record<string, { label: string; tone: string }> = {
   CREDENTIAL_DELETED: { label: "Senha removida do cofre", tone: "gray" },
 };
 
-// Tipos de equipamento para o filtro (valor da API -> rótulo em PT).
-const TYPES: { value: string; label: string }[] = [
-  { value: "", label: "Todos os equipamentos" },
-  { value: "NOTEBOOK", label: "Notebook" },
-  { value: "DESKTOP", label: "Desktop" },
-  { value: "MONITOR", label: "Monitor" },
-  { value: "PHONE", label: "Celular" },
-  { value: "PERIPHERAL", label: "Periférico" },
-  { value: "TOOL", label: "Ferramenta" },
-  { value: "OTHER", label: "Outro" },
-];
-
 export function Audit() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [type, setType] = useState("");
+  const [types, setTypes] = useState<EquipmentType[]>([]);
+  const [typeId, setTypeId] = useState("");
 
+  // Carrega os tipos uma vez (para o filtro).
+  useEffect(() => {
+    api.get<EquipmentType[]>("/equipment-types").then((res) => setTypes(res.data));
+  }, []);
+
+  // Recarrega a trilha sempre que o filtro muda.
   useEffect(() => {
     api
-      .get<AuditLog[]>("/audit", {
-        params: type ? { equipmentType: type } : undefined,
-      })
+      .get<AuditLog[]>("/audit", { params: typeId ? { typeId } : undefined })
       .then((res) => setLogs(res.data));
-  }, [type]);
+  }, [typeId]);
 
   return (
     <div>
@@ -58,12 +56,13 @@ export function Audit() {
         <label htmlFor="audit-filter">Filtrar por equipamento</label>
         <select
           id="audit-filter"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
+          value={typeId}
+          onChange={(e) => setTypeId(e.target.value)}
         >
-          {TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
+          <option value="">Todos os equipamentos</option>
+          {types.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
             </option>
           ))}
         </select>

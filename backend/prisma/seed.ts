@@ -21,6 +21,26 @@ async function main() {
   });
 
   console.log(`✅ Admin criado: ${email} / senha: admin123`);
+
+  // Tipos de equipamento padrão (em português). Novos podem ser cadastrados
+  // pela própria aplicação.
+  const tipos = [
+    "Notebook",
+    "Desktop",
+    "Monitor",
+    "Celular",
+    "Periférico",
+    "Ferramenta",
+    "Outro",
+  ];
+  for (const name of tipos) {
+    await prisma.equipmentType.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+  console.log(`✅ ${tipos.length} tipos de equipamento criados`);
 }
 
 main()

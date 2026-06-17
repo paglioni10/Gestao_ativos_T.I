@@ -31,6 +31,7 @@ export const assignmentService = {
     // 1. Validações de negócio antes de tocar no banco.
     const equipment = await prisma.equipment.findUnique({
       where: { id: equipmentId },
+      include: { type: { select: { name: true } } },
     });
     if (!equipment) {
       throw new AppError("Equipamento não encontrado", 404);
@@ -73,7 +74,7 @@ export const assignmentService = {
     const termPdfPath = await generateTermPdf({
       assignmentId: assignment.id,
       equipmentName: equipment.name,
-      equipmentType: equipment.type,
+      equipmentType: equipment.type.name,
       equipmentSerial: equipment.serialNumber,
       receiverName: receiver.name,
       assignedAt: assignment.assignedAt,

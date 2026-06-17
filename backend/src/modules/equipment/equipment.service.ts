@@ -1,4 +1,4 @@
-import type { EquipmentStatus, EquipmentType } from "@prisma/client";
+import type { EquipmentStatus } from "@prisma/client";
 import QRCode from "qrcode";
 import { env } from "../../config/env.js";
 import { AppError } from "../../lib/AppError.js";
@@ -7,7 +7,7 @@ import { prisma } from "../../lib/prisma.js";
 
 interface CreateEquipmentInput {
   name: string;
-  type: EquipmentType;
+  typeId: string;
   serialNumber: string;
   purchaseDate?: Date;
   warrantyUntil?: Date;
@@ -24,6 +24,7 @@ export const equipmentService = {
     return prisma.equipment.findMany({
       where: status ? { status } : undefined,
       orderBy: { createdAt: "desc" },
+      include: { type: { select: { id: true, name: true } } },
     });
   },
 
@@ -32,6 +33,7 @@ export const equipmentService = {
     const equipment = await prisma.equipment.findUnique({
       where: { id },
       include: {
+        type: { select: { id: true, name: true } },
         assignments: {
           orderBy: { assignedAt: "desc" },
           include: { receiver: { select: { id: true, name: true } } },
@@ -61,6 +63,13 @@ export const equipmentService = {
     });
     if (existing) {
       throw new AppError("Já existe equipamento com este número de série");
+    }
+
+    const type = await prisma.equipmentType.findUnique({
+      where: { id: data.typeId },
+    });
+    if (!type) {
+      throw new AppError("Tipo de equipamento inválido");
     }
 
     const equipment = await prisma.equipment.create({ data });
