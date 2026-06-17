@@ -28,6 +28,7 @@ const ACTIONS: Record<string, { label: string; tone: string }> = {
   CREDENTIAL_CREATED: { label: "Senha adicionada ao cofre", tone: "blue" },
   CREDENTIAL_REVEALED: { label: "Senha revelada", tone: "red" },
   CREDENTIAL_DELETED: { label: "Senha removida do cofre", tone: "gray" },
+  USER_CREATED: { label: "Usuário criado", tone: "blue" },
 };
 
 export function Audit() {

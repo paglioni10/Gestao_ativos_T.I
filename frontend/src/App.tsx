@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
+import { RequireAdmin } from "./components/RequireAdmin";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Assignments } from "./pages/Assignments";
 import { Audit } from "./pages/Audit";
@@ -7,6 +8,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Equipment } from "./pages/Equipment";
 import { EquipmentDetail } from "./pages/EquipmentDetail";
 import { Login } from "./pages/Login";
+import { Users } from "./pages/Users";
 
 // Define o mapa de rotas da aplicação.
 export function App() {
@@ -22,7 +24,12 @@ export function App() {
             <Route path="/equipamentos" element={<Equipment />} />
             <Route path="/equipamentos/:id" element={<EquipmentDetail />} />
             <Route path="/atribuicoes" element={<Assignments />} />
-            <Route path="/auditoria" element={<Audit />} />
+
+            {/* Áreas restritas a administradores (governança). */}
+            <Route element={<RequireAdmin />}>
+              <Route path="/auditoria" element={<Audit />} />
+              <Route path="/colaboradores" element={<Users />} />
+            </Route>
           </Route>
 
           {/* Qualquer rota desconhecida volta para a home. */}

@@ -27,7 +27,12 @@ export function Layout({ children }: { children: ReactNode }) {
             </NavLink>
             <NavLink to="/equipamentos">Equipamentos</NavLink>
             <NavLink to="/atribuicoes">Atribuições</NavLink>
-            {user?.role === "ADMIN" && <NavLink to="/auditoria">Auditoria</NavLink>}
+            {user?.role === "ADMIN" && (
+              <>
+                <NavLink to="/colaboradores">Colaboradores</NavLink>
+                <NavLink to="/auditoria">Auditoria</NavLink>
+              </>
+            )}
           </nav>
           <div className="topbar-user">
             <ThemeToggle />

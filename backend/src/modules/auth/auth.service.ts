@@ -25,9 +25,13 @@ export const authService = {
       throw new AppError("E-mail já cadastrado");
     }
 
+    // Governança: o registro público NUNCA cria administradores — sempre
+    // COLLABORATOR. Contas de admin só são criadas por outro admin
+    // (POST /api/users). Isso evita escalonamento de privilégio.
+    void role;
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { name, email, passwordHash, role: role ?? "COLLABORATOR" },
+      data: { name, email, passwordHash, role: "COLLABORATOR" },
     });
 
     return this.toAuthResponse(user.id, user.name, user.email, user.role);
