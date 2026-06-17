@@ -71,6 +71,7 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 - [x] Estados de foco visíveis (`:focus-visible`) e navegação por teclado (links/botões reais)
 - [x] Contraste de cores ajustado (texto secundário AA no claro e escuro)
 - [x] HTML semântico e `scope="col"` nas tabelas
+- [x] Modo de alto contraste (3º tema: claro → escuro → alto contraste)
 
 ## 🚀 Fase 7 — Deploy e conferência final
 

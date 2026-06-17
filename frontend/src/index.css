@@ -61,6 +61,54 @@
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
+/* ---- Alto contraste: preto sobre branco, bordas reforçadas ---- */
+[data-theme="hc"] {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --border: #000000;
+  --text: #000000;
+  --muted: #1a1a1a;
+  --primary: #0033cc;
+  --primary-hover: #001f80;
+  --danger: #a30000;
+  --danger-bg: #fff0f0;
+
+  --green-bg: #e3ffe3;
+  --green-fg: #004d00;
+  --blue-bg: #e3ebff;
+  --blue-fg: #002a99;
+  --amber-bg: #fff1d0;
+  --amber-fg: #5c3d00;
+  --red-bg: #ffe3e3;
+  --red-fg: #8a0000;
+  --gray-bg: #ededed;
+  --gray-fg: #1a1a1a;
+
+  --input-bg: #ffffff;
+  --hover-bg: #ededed;
+  --shadow: none;
+}
+/* Bordas mais grossas e badges contornados no alto contraste. */
+[data-theme="hc"] .panel,
+[data-theme="hc"] .stat-card,
+[data-theme="hc"] .btn,
+[data-theme="hc"] input,
+[data-theme="hc"] select {
+  border-width: 2px;
+}
+[data-theme="hc"] .topbar {
+  border-bottom-width: 2px;
+}
+[data-theme="hc"] .badge {
+  border: 1.5px solid currentColor;
+}
+[data-theme="hc"] a:focus-visible,
+[data-theme="hc"] button:focus-visible,
+[data-theme="hc"] select:focus-visible,
+[data-theme="hc"] input:focus-visible {
+  outline-width: 3px;
+}
+
 * {
   box-sizing: border-box;
 }
