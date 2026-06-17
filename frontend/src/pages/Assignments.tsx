@@ -102,43 +102,45 @@ export function Assignments() {
 
       {isAdmin && (
         <form className="panel" onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="field">
-              <label>Equipamento disponível</label>
-              <select
-                value={form.equipmentId}
-                onChange={(e) => setForm({ ...form, equipmentId: e.target.value })}
-                required
-              >
-                <option value="">Selecione...</option>
-                {available.map((eq) => (
-                  <option key={eq.id} value={eq.id}>
-                    {eq.name} ({eq.serialNumber})
-                  </option>
-                ))}
-              </select>
+          <div className="split-form">
+            <div className="fields">
+              <div className="field">
+                <label>Equipamento disponível</label>
+                <select
+                  value={form.equipmentId}
+                  onChange={(e) => setForm({ ...form, equipmentId: e.target.value })}
+                  required
+                >
+                  <option value="">Selecione...</option>
+                  {available.map((eq) => (
+                    <option key={eq.id} value={eq.id}>
+                      {eq.name} ({eq.serialNumber})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Colaborador</label>
+                <select
+                  value={form.receiverId}
+                  onChange={(e) => setForm({ ...form, receiverId: e.target.value })}
+                  required
+                >
+                  <option value="">Selecione...</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="btn btn-primary">
+                Registrar entrega
+              </button>
             </div>
-            <div className="field">
-              <label>Colaborador</label>
-              <select
-                value={form.receiverId}
-                onChange={(e) => setForm({ ...form, receiverId: e.target.value })}
-                required
-              >
-                <option value="">Selecione...</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
+            <div className="aside">
+              <SignaturePad onChange={setSignature} width={360} height={150} />
             </div>
-            <div className="field">
-              <SignaturePad onChange={setSignature} />
-            </div>
-            <button type="submit" className="btn btn-primary">
-              Registrar entrega
-            </button>
           </div>
         </form>
       )}

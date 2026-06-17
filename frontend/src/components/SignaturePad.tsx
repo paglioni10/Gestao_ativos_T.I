@@ -3,10 +3,12 @@ import { PointerEvent, useRef } from "react";
 interface Props {
   // Chamado quando a assinatura muda: recebe o data URL (PNG) ou null se limpa.
   onChange: (dataUrl: string | null) => void;
+  width?: number;
+  height?: number;
 }
 
 // Área de desenho para capturar a assinatura do colaborador.
-export function SignaturePad({ onChange }: Props) {
+export function SignaturePad({ onChange, width = 300, height = 120 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
 
@@ -49,14 +51,18 @@ export function SignaturePad({ onChange }: Props) {
 
   return (
     <div>
-      <label style={{ display: "block" }}>Assinatura do colaborador</label>
+      <label style={{ display: "block", fontSize: 13, color: "var(--muted)", fontWeight: 500, marginBottom: 4 }}>
+        Assinatura do colaborador
+      </label>
       <canvas
         ref={canvasRef}
-        width={300}
-        height={120}
+        width={width}
+        height={height}
         style={{
-          border: "1px solid #ccc",
-          borderRadius: 4,
+          display: "block",
+          maxWidth: "100%",
+          border: "1px solid var(--border)",
+          borderRadius: 8,
           background: "#fff",
           touchAction: "none", // evita scroll ao desenhar no touch
         }}

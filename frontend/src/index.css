@@ -319,6 +319,31 @@ a:hover {
   color: var(--muted);
   font-weight: 500;
 }
+
+/* Layout de formulário em duas colunas (ex.: entrega + assinatura) */
+.split-form {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.split-form .fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1 1 280px;
+}
+.split-form .fields .field,
+.split-form .fields select {
+  width: 100%;
+}
+.split-form .fields .btn {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.split-form .aside {
+  flex: 0 0 auto;
+}
 input,
 select {
   font: inherit;
