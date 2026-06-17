@@ -18,6 +18,19 @@ interface Credential {
   createdAt: string;
 }
 
+interface PasswordRequest {
+  id: string;
+  status: "PENDING" | "APPROVED" | "DENIED";
+  equipment: { id: string; name: string };
+}
+
+interface RevealedSecret {
+  id: string;
+  label: string;
+  username: string | null;
+  secret: string;
+}
+
 interface AssignmentLite {
   id: string;
   status: string;
@@ -52,6 +65,12 @@ export function EquipmentDetail() {
   const [credForm, setCredForm] = useState({ label: "", username: "", secret: "" });
   const [revealed, setRevealed] = useState<Record<string, string>>({});
 
+  // Solicitação de acesso (visão do colaborador)
+  const [myRequest, setMyRequest] = useState<PasswordRequest | null>(null);
+  const [grantedSecrets, setGrantedSecrets] = useState<RevealedSecret[] | null>(
+    null
+  );
+
   async function load() {
     const [eq, qr] = await Promise.all([
       api.get<EquipmentDetail>(`/equipment/${id}`),
@@ -64,6 +83,34 @@ export function EquipmentDetail() {
         params: { equipmentId: id },
       });
       setCredentials(cred.data);
+    } else {
+      // Colaborador: descobre se já tem solicitação para este equipamento.
+      const mine = await api.get<PasswordRequest[]>("/password-requests/mine");
+      setMyRequest(mine.data.find((r) => r.equipment.id === id) ?? null);
+    }
+  }
+
+  async function requestAccess() {
+    setError("");
+    try {
+      await api.post("/password-requests", { equipmentId: id });
+      setGrantedSecrets(null);
+      await load();
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? "Erro ao solicitar acesso");
+    }
+  }
+
+  async function viewGrantedSecrets() {
+    if (!myRequest) return;
+    setError("");
+    try {
+      const res = await api.get<RevealedSecret[]>(
+        `/password-requests/${myRequest.id}/secrets`
+      );
+      setGrantedSecrets(res.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? "Erro ao ver senhas");
     }
   }
 
@@ -352,6 +399,87 @@ export function EquipmentDetail() {
               </tbody>
             </table>
           </div>
+        </>
+      )}
+
+      {/* Acesso às senhas (visão do colaborador) */}
+      {!isAdmin && (
+        <>
+          <h2>🔐 Senhas do equipamento</h2>
+          {!myRequest && (
+            <div className="panel">
+              <p className="muted" style={{ marginTop: 0 }}>
+                As senhas deste equipamento são restritas. Você pode solicitar
+                acesso ao administrador.
+              </p>
+              <button className="btn btn-primary" onClick={requestAccess}>
+                Solicitar acesso às senhas
+              </button>
+            </div>
+          )}
+
+          {myRequest?.status === "PENDING" && (
+            <div className="panel">
+              <Badge tone="amber">Solicitação pendente</Badge>
+              <p className="muted">Aguardando aprovação do administrador.</p>
+            </div>
+          )}
+
+          {myRequest?.status === "DENIED" && (
+            <div className="panel">
+              <Badge tone="red">Solicitação negada</Badge>
+              <button
+                className="btn"
+                style={{ marginLeft: 12 }}
+                onClick={requestAccess}
+              >
+                Solicitar novamente
+              </button>
+            </div>
+          )}
+
+          {myRequest?.status === "APPROVED" && (
+            <div className="panel">
+              <Badge tone="green">Acesso aprovado</Badge>
+              {!grantedSecrets ? (
+                <button
+                  className="btn btn-primary"
+                  style={{ marginLeft: 12 }}
+                  onClick={viewGrantedSecrets}
+                >
+                  Ver senhas
+                </button>
+              ) : (
+                <table className="table" style={{ marginTop: 12 }}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Rótulo</th>
+                      <th scope="col">Usuário</th>
+                      <th scope="col">Senha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {grantedSecrets.map((s) => (
+                      <tr key={s.id}>
+                        <td>{s.label}</td>
+                        <td>{s.username ?? "—"}</td>
+                        <td>
+                          <code>{s.secret}</code>
+                        </td>
+                      </tr>
+                    ))}
+                    {grantedSecrets.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="empty">
+                          Este equipamento não tem senhas cadastradas.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
         </>
       )}
 

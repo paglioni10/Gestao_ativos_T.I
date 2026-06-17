@@ -8,6 +8,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Equipment } from "./pages/Equipment";
 import { EquipmentDetail } from "./pages/EquipmentDetail";
 import { Login } from "./pages/Login";
+import { Requests } from "./pages/Requests";
 import { Users } from "./pages/Users";
 
 // Define o mapa de rotas da aplicação.
@@ -29,6 +30,7 @@ export function App() {
             <Route element={<RequireAdmin />}>
               <Route path="/auditoria" element={<Audit />} />
               <Route path="/colaboradores" element={<Users />} />
+              <Route path="/solicitacoes" element={<Requests />} />
             </Route>
           </Route>
 

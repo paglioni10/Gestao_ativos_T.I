@@ -29,6 +29,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <NavLink to="/atribuicoes">Atribuições</NavLink>
             {user?.role === "ADMIN" && (
               <>
+                <NavLink to="/solicitacoes">Solicitações</NavLink>
                 <NavLink to="/colaboradores">Colaboradores</NavLink>
                 <NavLink to="/auditoria">Auditoria</NavLink>
               </>
