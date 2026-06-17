@@ -13,3 +13,19 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Se a sessão for inválida/expirada (401), limpa o login e volta para a tela
+// de entrada — evita ficar com um token velho causando erros.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);

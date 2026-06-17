@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 import { AppError } from "../lib/AppError.js";
+import { prisma } from "../lib/prisma.js";
 
 // Formato do payload que assinamos no JWT.
 export interface TokenPayload {
@@ -20,19 +21,39 @@ declare global {
 }
 
 // Exige um token JWT válido no header Authorization: Bearer <token>.
-export function ensureAuth(req: Request, _res: Response, next: NextFunction) {
+// Também confirma que o usuário do token ainda existe (sessão válida) e usa
+// o papel atual do banco — assim um token de usuário removido é rejeitado
+// com 401 limpo, em vez de quebrar ações mais adiante.
+export async function ensureAuth(
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) {
   const header = req.headers.authorization;
   if (!header) {
-    throw new AppError("Token não informado", 401);
+    return next(new AppError("Token não informado", 401));
   }
 
   const [, token] = header.split(" ");
+  let payload: TokenPayload;
   try {
-    const payload = jwt.verify(token, env.jwtSecret) as TokenPayload;
-    req.user = payload;
-    return next();
+    payload = jwt.verify(token, env.jwtSecret) as TokenPayload;
   } catch {
-    throw new AppError("Token inválido ou expirado", 401);
+    return next(new AppError("Token inválido ou expirado", 401));
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, role: true },
+    });
+    if (!user) {
+      return next(new AppError("Sessão inválida. Faça login novamente.", 401));
+    }
+    req.user = { sub: user.id, role: user.role };
+    return next();
+  } catch (err) {
+    return next(err);
   }
 }
 
