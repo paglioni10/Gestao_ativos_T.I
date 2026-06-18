@@ -234,7 +234,7 @@ export function EquipmentDetail() {
       <h2>Manutenções</h2>
       {isAdmin && (
         <form className="panel" onSubmit={scheduleMaintenance}>
-          <div className="form-row">
+          <div className="form-row fill">
             <div className="field">
               <label htmlFor="mt-description">Descrição</label>
               <input
@@ -323,7 +323,7 @@ export function EquipmentDetail() {
           </p>
 
           <form className="panel" onSubmit={addCredential}>
-            <div className="form-row">
+            <div className="form-row fill">
               <div className="field">
                 <label htmlFor="cred-label">Rótulo</label>
                 <input

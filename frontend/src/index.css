@@ -408,6 +408,15 @@ input:focus-visible {
   font-weight: 500;
 }
 
+/* Variante: campos crescem para preencher a largura da linha. */
+.form-row.fill .field {
+  flex: 1 1 180px;
+}
+.form-row.fill .field input,
+.form-row.fill .field select {
+  width: 100%;
+}
+
 /* Layout de formulário em duas colunas (ex.: entrega + assinatura) */
 .split-form {
   display: flex;
