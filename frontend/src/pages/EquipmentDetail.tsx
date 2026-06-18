@@ -192,24 +192,41 @@ export function EquipmentDetail() {
 
       {error && <p className="alert-error">{error}</p>}
 
-      <div className="panel" style={{ display: "flex", gap: 40, flexWrap: "wrap" }}>
-        <div style={{ display: "grid", gap: 6, alignContent: "start" }}>
-          <div>
-            <span className="muted">Tipo: </span>
-            {equipment.type.name}
-          </div>
-          <div>
-            <span className="muted">Nº de série: </span>
-            {equipment.serialNumber}
-          </div>
-          <div>
-            <span className="muted">Status: </span>
+      <div
+        className="panel"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 32,
+          flexWrap: "wrap",
+        }}
+      >
+        <dl
+          style={{
+            display: "grid",
+            gridTemplateColumns: "auto 1fr",
+            gap: "12px 24px",
+            margin: 0,
+            flex: 1,
+            minWidth: 240,
+            alignItems: "center",
+          }}
+        >
+          <dt className="muted">Tipo</dt>
+          <dd style={{ margin: 0, fontWeight: 600 }}>{equipment.type.name}</dd>
+          <dt className="muted">Nº de série</dt>
+          <dd style={{ margin: 0, fontWeight: 600 }}>{equipment.serialNumber}</dd>
+          <dt className="muted">Status</dt>
+          <dd style={{ margin: 0 }}>
             <Badge status={equipment.status} />
+          </dd>
+        </dl>
+        <div style={{ textAlign: "center", flexShrink: 0 }}>
+          {qrCode && <img src={qrCode} alt="QR Code do equipamento" width={150} />}
+          <div className="muted" style={{ fontSize: 12 }}>
+            Escaneie para abrir a ficha
           </div>
-        </div>
-        <div style={{ textAlign: "center" }}>
-          {qrCode && <img src={qrCode} alt="QR Code do equipamento" width={140} />}
-          <div className="muted">Escaneie para abrir a ficha</div>
         </div>
       </div>
 
