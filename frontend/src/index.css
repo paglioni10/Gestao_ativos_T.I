@@ -152,16 +152,17 @@ a:hover {
   z-index: 10;
 }
 .topbar-inner {
-  max-width: 1040px;
+  max-width: 1140px;
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 14px;
   padding: 0 24px;
   height: 60px;
 }
 .topbar-brand {
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .topbar-brand:hover {
   text-decoration: none;
@@ -184,15 +185,21 @@ a:hover {
 }
 .topbar-nav {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.topbar-nav::-webkit-scrollbar {
+  display: none;
 }
 .topbar-nav a {
   color: var(--muted);
-  padding: 8px 12px;
+  padding: 8px 10px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
+  white-space: nowrap;
 }
 .topbar-nav a:hover {
   background: var(--bg);
@@ -205,15 +212,16 @@ a:hover {
 .topbar-user {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-size: 14px;
   color: var(--muted);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ---- Container de página ---- */
 .page {
-  max-width: 1040px;
+  max-width: 1140px;
   margin: 0 auto;
   padding: 28px 24px 60px;
 }
