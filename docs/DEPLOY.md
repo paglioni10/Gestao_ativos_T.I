@@ -37,9 +37,10 @@ O projeto já está preparado para deploy:
    | `CORS_ORIGIN` | a URL da Vercel (você preenche depois do passo 3) |
 4. Faça o deploy. Anote a URL da API, algo como
    `https://gestao-ativos-ti.onrender.com`.
-5. **Primeira vez:** rode o seed uma vez para criar o admin e os tipos.
-   No painel do serviço → **Shell**: `npm run seed`
-   (cria `admin@empresa.com` / `admin123` — troque a senha depois).
+5. **Dados iniciais:** a API cria sozinha, ao subir, o admin
+   (`admin@empresa.com` / `admin123`) e os tipos de equipamento — de forma
+   idempotente (não duplica nem sobrescreve). Não precisa de Shell.
+   (Localmente você ainda pode rodar `npm run seed` se quiser.)
 
 ## 3. Frontend (Vercel)
 
