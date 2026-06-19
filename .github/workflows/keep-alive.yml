@@ -1,0 +1,15 @@
+name: Keep API awake
+
+# O plano free do Render hiberna a API após ~15 min de inatividade.
+# Este workflow faz um ping no /health a cada 10 minutos para mantê-la acordada.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {} # permite rodar manualmente pela aba Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: curl -fsS --max-time 60 https://gestao-ativos-t-i.onrender.com/health
