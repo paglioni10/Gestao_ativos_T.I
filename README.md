@@ -9,6 +9,15 @@ monitores, ferramentas).
 > termo de responsabilidade digital por entrega e mantém uma trilha de
 > auditoria imutável de quem fez o quê.
 
+## 🚀 Acesse
+
+- **App ao vivo:** _<adicione aqui a URL da Vercel após o deploy>_
+- **Login de demonstração:** `admin@empresa.com` / `admin123`
+
+<!-- Dica: adicione aqui um print da Visão geral e/ou um GIF do fluxo de entrega. -->
+
+Como publicar: veja o [guia de deploy](docs/DEPLOY.md).
+
 ## ✨ Funcionalidades
 
 - 🔐 Autenticação com papéis (Admin / Colaborador) via JWT

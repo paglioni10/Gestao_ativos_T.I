@@ -75,9 +75,13 @@ Sugestão de ordem para você ir construindo e **commitando por fase**. Cada fas
 
 ## 🚀 Fase 7 — Deploy e conferência final
 
-- [ ] Deploy: frontend na Vercel, backend + banco no Render/Railway
-- [ ] Print/GIF no README + link do app no ar
-- [ ] Conferência final ponta a ponta
+- [x] Projeto pronto para deploy: `build`/`start:prod` no backend, `vercel.json`
+      (SPA) no frontend, tudo por variáveis de ambiente
+- [x] Guia de deploy passo a passo ([docs/DEPLOY.md](DEPLOY.md))
+- [x] Conferência final: builds de produção (backend e frontend) + smoke test
+      dos endpoints principais (todos 200)
+- [ ] **(você)** Publicar: backend + banco no Render, frontend na Vercel
+- [ ] **(você)** Adicionar o link do app e print/GIF no README
 
 ## 💡 Dicas de commit
 
