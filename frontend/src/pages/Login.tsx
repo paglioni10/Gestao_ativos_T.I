@@ -17,8 +17,16 @@ export function Login() {
     try {
       await login(email, password);
       navigate("/");
-    } catch {
-      setError("E-mail ou senha inválidos");
+    } catch (err: any) {
+      // Distingue credencial inválida (401) de falha de conexão/servidor,
+      // para não mascarar problemas de rede como "senha errada".
+      if (err?.response?.status === 401) {
+        setError("E-mail ou senha inválidos");
+      } else if (err?.response) {
+        setError("Erro no servidor. Tente novamente em instantes.");
+      } else {
+        setError("Não foi possível conectar ao servidor.");
+      }
     }
   }
 
