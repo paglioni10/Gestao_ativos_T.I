@@ -1,7 +1,13 @@
 name: Keep API awake
 
 # O plano free do Render hiberna a API após ~15 min de inatividade.
-# Este workflow faz um ping no /health a cada 10 minutos para mantê-la acordada.
+# Este workflow faz um ping no /health para acordá-la.
+#
+# ATENÇÃO: o GitHub Actions atrasa/afunila agendamentos cron em repositórios
+# free (na prática roda ~1x por hora, não a cada 10 min). Portanto ele REDUZ,
+# mas NÃO elimina, a hibernação. Para manter 100% acordado, use também um
+# monitor externo (ex.: cron-job.org ou UptimeRobot) pingando /health a cada
+# 5 min — veja docs/DEPLOY.md.
 on:
   schedule:
     - cron: "*/10 * * * *"
@@ -11,5 +17,9 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping health endpoint
-        run: curl -fsS --max-time 60 https://gestao-ativos-t-i.onrender.com/health
+      - name: Ping health endpoint (com retries para o cold start)
+        run: >
+          curl -fsS
+          --retry 5 --retry-all-errors --retry-delay 20
+          --max-time 120
+          https://gestao-ativos-t-i.onrender.com/health

@@ -68,8 +68,13 @@ O projeto já está preparado para deploy:
 
 ## ⚠️ Observações
 
-- **Render Free hiberna** após inatividade: a primeira requisição depois de um
-  tempo demora alguns segundos (a API "acorda").
+- **Render Free hiberna** após ~15 min de inatividade: a primeira requisição
+  depois demora alguns segundos (a API "acorda"). O workflow
+  `.github/workflows/keep-alive.yml` ajuda a reduzir isso, mas o GitHub Actions
+  atrasa agendamentos `cron` em repositórios free (roda ~1x/hora). Para manter
+  **100% acordado**, cadastre um monitor externo gratuito pingando o `/health`
+  a cada 5 min:
+  - **cron-job.org** ou **UptimeRobot** → URL: `https://SUA-API.onrender.com/health`
 - **PDFs dos termos** são salvos em disco efêmero no Render e somem a cada
   redeploy. Para produção de verdade, use armazenamento externo (ex.: S3).
   Para portfólio, tudo bem.
