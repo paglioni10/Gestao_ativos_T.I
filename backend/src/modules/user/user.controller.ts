@@ -3,14 +3,14 @@ import { z } from "zod";
 import { userService } from "./user.service.js";
 
 const createSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
+  name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
   role: z.enum(["ADMIN", "COLLABORATOR"]),
 });
 
 const resetPasswordSchema = z.object({
-  password: z.string().min(6),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
 });
 
 export const userController = {

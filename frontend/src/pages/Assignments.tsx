@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
 import { SignaturePad } from "../components/SignaturePad";
 import { useAuth } from "../contexts/AuthContext";
-import { api } from "../lib/api";
+import { api, getErrorMessage } from "../lib/api";
 
 interface Assignment {
   id: string;
@@ -67,7 +67,7 @@ export function Assignments() {
       setSignature(null);
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao registrar entrega");
+      setError(getErrorMessage(err, "Erro ao registrar entrega"));
     }
   }
 
@@ -78,7 +78,7 @@ export function Assignments() {
       await api.patch(`/assignments/${item.id}/return`);
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao registrar devolução");
+      setError(getErrorMessage(err, "Erro ao registrar devolução"));
     }
   }
 

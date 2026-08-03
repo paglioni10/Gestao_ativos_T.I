@@ -4,19 +4,19 @@ import { authService } from "./auth.service.js";
 
 // Schemas de validação da entrada (zod). Garante que o body chega no formato certo.
 const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
+  name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
   role: z.enum(["ADMIN", "COLLABORATOR"]).optional(),
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(1, "Informe a senha"),
 });
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email("E-mail inválido"),
 });
 
 export const authController = {

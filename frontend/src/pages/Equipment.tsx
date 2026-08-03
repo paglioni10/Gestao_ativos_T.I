@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../components/Badge";
 import { useAuth } from "../contexts/AuthContext";
-import { api } from "../lib/api";
+import { api, getErrorMessage } from "../lib/api";
 
 interface EquipmentType {
   id: string;
@@ -58,7 +58,7 @@ export function Equipment() {
       resetForm();
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao salvar");
+      setError(getErrorMessage(err, "Erro ao salvar"));
     }
   }
 
@@ -74,7 +74,7 @@ export function Equipment() {
       await api.delete(`/equipment/${item.id}`);
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao dar baixa");
+      setError(getErrorMessage(err, "Erro ao dar baixa"));
     }
   }
 
@@ -91,7 +91,7 @@ export function Equipment() {
       setTypes(tp.data);
       setForm((f) => ({ ...f, typeId: res.data.id }));
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao cadastrar tipo");
+      setError(getErrorMessage(err, "Erro ao cadastrar tipo"));
     }
   }
 

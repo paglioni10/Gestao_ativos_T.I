@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
 import { PasswordInput } from "../components/PasswordInput";
-import { api } from "../lib/api";
+import { api, getErrorMessage } from "../lib/api";
 
 interface User {
   id: string;
@@ -47,7 +47,7 @@ export function Users() {
       setForm(emptyForm);
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao criar usuário");
+      setError(getErrorMessage(err, "Erro ao criar usuário"));
     }
   }
 
@@ -62,7 +62,7 @@ export function Users() {
       setResettingId(null);
       setNewPassword("");
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao redefinir senha");
+      setError(getErrorMessage(err, "Erro ao redefinir senha"));
     }
   }
 

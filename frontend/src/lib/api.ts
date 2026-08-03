@@ -29,3 +29,18 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Extrai uma mensagem de erro legível de uma resposta da API. Quando o erro
+// é de validação (422, "Dados inválidos"), inclui o motivo específico de
+// cada campo em vez de mostrar só o texto genérico.
+export function getErrorMessage(err: any, fallback: string): string {
+  const data = err?.response?.data;
+  if (!data) return fallback;
+  if (data.issues) {
+    const details = Object.values(data.issues as Record<string, string[]>)
+      .flat()
+      .join(" ");
+    return details || data.message || fallback;
+  }
+  return data.message ?? fallback;
+}

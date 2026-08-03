@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/Badge";
 import { PasswordInput } from "../components/PasswordInput";
 import { useAuth } from "../contexts/AuthContext";
-import { api } from "../lib/api";
+import { api, getErrorMessage } from "../lib/api";
 
 interface Maintenance {
   id: string;
@@ -98,7 +98,7 @@ export function EquipmentDetail() {
       setGrantedSecrets(null);
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao solicitar acesso");
+      setError(getErrorMessage(err, "Erro ao solicitar acesso"));
     }
   }
 
@@ -111,7 +111,7 @@ export function EquipmentDetail() {
       );
       setGrantedSecrets(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao ver senhas");
+      setError(getErrorMessage(err, "Erro ao ver senhas"));
     }
   }
 
@@ -127,7 +127,7 @@ export function EquipmentDetail() {
       setForm({ description: "", scheduledFor: "" });
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao agendar manutenção");
+      setError(getErrorMessage(err, "Erro ao agendar manutenção"));
     }
   }
 
@@ -137,7 +137,7 @@ export function EquipmentDetail() {
       await api.patch(`/maintenances/${maintenanceId}/complete`);
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao concluir manutenção");
+      setError(getErrorMessage(err, "Erro ao concluir manutenção"));
     }
   }
 
@@ -149,7 +149,7 @@ export function EquipmentDetail() {
       setCredForm({ label: "", username: "", secret: "" });
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao salvar credencial");
+      setError(getErrorMessage(err, "Erro ao salvar credencial"));
     }
   }
 
@@ -159,7 +159,7 @@ export function EquipmentDetail() {
       const res = await api.get<{ secret: string }>(`/credentials/${credId}/reveal`);
       setRevealed((prev) => ({ ...prev, [credId]: res.data.secret }));
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao revelar senha");
+      setError(getErrorMessage(err, "Erro ao revelar senha"));
     }
   }
 
@@ -178,7 +178,7 @@ export function EquipmentDetail() {
       await api.delete(`/credentials/${credId}`);
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao remover credencial");
+      setError(getErrorMessage(err, "Erro ao remover credencial"));
     }
   }
 

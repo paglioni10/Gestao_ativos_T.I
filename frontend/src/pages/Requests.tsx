@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
-import { api } from "../lib/api";
+import { api, getErrorMessage } from "../lib/api";
 
 interface PasswordRequest {
   id: string;
@@ -35,7 +35,7 @@ export function Requests() {
       await api.patch(`/password-requests/${id}`, { action });
       await load();
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Erro ao resolver solicitação");
+      setError(getErrorMessage(err, "Erro ao resolver solicitação"));
     }
   }
 
