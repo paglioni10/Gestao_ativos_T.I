@@ -412,6 +412,35 @@ input:focus-visible {
 .form-row.fill .field {
   flex: 1 1 180px;
 }
+
+/* Lista de checkboxes rolável (ex.: seleção múltipla de equipamentos). */
+.checklist {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--input-bg);
+  min-width: 220px;
+}
+.checklist label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.checklist label:last-child {
+  border-bottom: none;
+}
+.checklist label:hover {
+  background: var(--hover-bg);
+}
+.checklist input[type="checkbox"] {
+  width: auto;
+  min-width: 0;
+}
 .form-row.fill .field input,
 .form-row.fill .field select {
   width: 100%;

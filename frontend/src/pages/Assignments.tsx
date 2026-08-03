@@ -34,9 +34,12 @@ export function Assignments() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [available, setAvailable] = useState<Equipment[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [form, setForm] = useState({ equipmentId: "", receiverId: "" });
+  const [equipmentIds, setEquipmentIds] = useState<string[]>([]);
+  const [receiverId, setReceiverId] = useState("");
   const [signature, setSignature] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function load() {
     const [a, eq] = await Promise.all([
@@ -55,20 +58,50 @@ export function Assignments() {
     load();
   }, []);
 
+  function toggleEquipment(id: string) {
+    setEquipmentIds((prev) =>
+      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
+    );
+  }
+
+  // Registra uma entrega para cada equipamento selecionado, para o mesmo
+  // colaborador, reaproveitando a mesma assinatura em todos os termos.
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
-    try {
-      await api.post("/assignments", {
-        ...form,
-        signatureDataUrl: signature ?? undefined,
-      });
-      setForm({ equipmentId: "", receiverId: "" });
-      setSignature(null);
-      await load();
-    } catch (err: any) {
-      setError(getErrorMessage(err, "Erro ao registrar entrega"));
+    setOk("");
+    if (equipmentIds.length === 0) {
+      setError("Selecione ao menos um equipamento.");
+      return;
     }
+    setSubmitting(true);
+    const failed: string[] = [];
+    for (const equipmentId of equipmentIds) {
+      try {
+        await api.post("/assignments", {
+          equipmentId,
+          receiverId,
+          signatureDataUrl: signature ?? undefined,
+        });
+      } catch (err: any) {
+        const eq = available.find((a) => a.id === equipmentId);
+        failed.push(`${eq?.name ?? equipmentId}: ${getErrorMessage(err, "erro")}`);
+      }
+    }
+    setSubmitting(false);
+
+    const successCount = equipmentIds.length - failed.length;
+    if (successCount > 0) {
+      setOk(`${successCount} equipamento(s) entregue(s) com sucesso.`);
+    }
+    if (failed.length > 0) {
+      setError(`Falha em ${failed.length} equipamento(s): ${failed.join("; ")}`);
+    }
+
+    setEquipmentIds([]);
+    setReceiverId("");
+    setSignature(null);
+    await load();
   }
 
   async function handleReturn(item: Assignment) {
@@ -99,33 +132,50 @@ export function Assignments() {
       <p className="muted">Entrega e devolução de equipamentos</p>
 
       {error && <p className="alert-error">{error}</p>}
+      {ok && (
+        <p
+          className="alert-error"
+          style={{ background: "var(--green-bg)", color: "var(--green-fg)" }}
+        >
+          {ok}
+        </p>
+      )}
 
       {isAdmin && (
         <form className="panel" onSubmit={handleSubmit}>
           <div className="split-form">
             <div className="fields">
               <div className="field">
-                <label htmlFor="as-equipment">Equipamento disponível</label>
-                <select
-                  id="as-equipment"
-                  value={form.equipmentId}
-                  onChange={(e) => setForm({ ...form, equipmentId: e.target.value })}
-                  required
-                >
-                  <option value="">Selecione...</option>
+                <label>
+                  Equipamentos disponíveis{" "}
+                  {equipmentIds.length > 0 && (
+                    <span className="muted">({equipmentIds.length} selecionado(s))</span>
+                  )}
+                </label>
+                <div className="checklist" role="group" aria-label="Equipamentos disponíveis">
                   {available.map((eq) => (
-                    <option key={eq.id} value={eq.id}>
+                    <label key={eq.id}>
+                      <input
+                        type="checkbox"
+                        checked={equipmentIds.includes(eq.id)}
+                        onChange={() => toggleEquipment(eq.id)}
+                      />
                       {eq.name} ({eq.serialNumber})
-                    </option>
+                    </label>
                   ))}
-                </select>
+                  {available.length === 0 && (
+                    <div className="muted" style={{ padding: 10, fontSize: 13 }}>
+                      Nenhum equipamento disponível.
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="field">
                 <label htmlFor="as-receiver">Colaborador</label>
                 <select
                   id="as-receiver"
-                  value={form.receiverId}
-                  onChange={(e) => setForm({ ...form, receiverId: e.target.value })}
+                  value={receiverId}
+                  onChange={(e) => setReceiverId(e.target.value)}
                   required
                 >
                   <option value="">Selecione...</option>
@@ -136,8 +186,12 @@ export function Assignments() {
                   ))}
                 </select>
               </div>
-              <button type="submit" className="btn btn-primary">
-                Registrar entrega
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
+                {submitting
+                  ? "Registrando..."
+                  : equipmentIds.length > 1
+                  ? `Registrar entrega (${equipmentIds.length})`
+                  : "Registrar entrega"}
               </button>
             </div>
             <div className="aside">
