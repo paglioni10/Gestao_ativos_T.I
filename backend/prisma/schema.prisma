@@ -33,9 +33,9 @@ model User {
   assignmentsCreated  Assignment[] @relation("AssignmentCreator")
   // Ações de auditoria realizadas por este usuário
   auditLogs           AuditLog[]
-  // Solicitações de acesso a senha feitas / resolvidas por este usuário
-  passwordRequests    PasswordRequest[] @relation("RequestRequester")
-  resolvedRequests    PasswordRequest[] @relation("RequestResolver")
+  // Pedidos de "esqueci minha senha" feitos / resolvidos por este usuário
+  passwordResetRequests    PasswordResetRequest[] @relation("ResetRequester")
+  resolvedPasswordResets   PasswordResetRequest[] @relation("ResetResolver")
 }
 
 enum Role {
@@ -66,7 +66,6 @@ model Equipment {
   maintenances    MaintenanceRecord[]
   credentials     DeviceCredential[]
   auditLogs       AuditLog[]
-  passwordRequests PasswordRequest[]
 }
 
 // Tipos de equipamento (notebook, celular, etc.). Cadastráveis em runtime.
@@ -176,28 +175,25 @@ model DeviceCredential {
 }
 
 // ---------------------------------------------------------------------------
-// Solicitação de acesso às senhas de um equipamento, feita por um colaborador
-// e aprovada/negada por um admin. Aprovada, o colaborador pode ver as senhas.
+// Pedido de "esqueci minha senha": o colaborador informa o e-mail no login,
+// e o pedido aparece para o admin em Solicitações, que define uma nova
+// senha diretamente ali (o projeto não tem envio de e-mail).
 // ---------------------------------------------------------------------------
-model PasswordRequest {
-  id         String        @id @default(uuid())
-  status     RequestStatus @default(PENDING)
-  reason     String?
-  createdAt  DateTime      @default(now())
+model PasswordResetRequest {
+  id         String            @id @default(uuid())
+  email      String
+  status     ResetRequestStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
   resolvedAt DateTime?
 
-  equipment   Equipment @relation(fields: [equipmentId], references: [id])
-  equipmentId String
+  user   User   @relation("ResetRequester", fields: [userId], references: [id])
+  userId String
 
-  requester   User   @relation("RequestRequester", fields: [requesterId], references: [id])
-  requesterId String
-
-  resolvedBy   User?   @relation("RequestResolver", fields: [resolvedById], references: [id])
+  resolvedBy   User?   @relation("ResetResolver", fields: [resolvedById], references: [id])
   resolvedById String?
 }
 
-enum RequestStatus {
+enum ResetRequestStatus {
   PENDING
-  APPROVED
-  DENIED
+  RESOLVED
 }
