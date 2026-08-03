@@ -8,7 +8,7 @@ interface AuditLog {
   entityId: string;
   createdAt: string;
   performedBy: { name: string } | null;
-  equipment: { name: string } | null;
+  equipment: { name: string; serialNumber: string } | null;
 }
 
 interface EquipmentType {
@@ -123,7 +123,17 @@ export function Audit() {
                       {conf?.label ?? log.action}
                     </span>
                   </td>
-                  <td>{log.equipment?.name ?? "—"}</td>
+                  <td>
+                    {log.equipment ? (
+                      <>
+                        {log.equipment.name}
+                        <br />
+                        <span className="muted">{log.equipment.serialNumber}</span>
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td>{log.performedBy?.name ?? "—"}</td>
                 </tr>
               );

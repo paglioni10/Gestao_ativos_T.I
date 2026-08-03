@@ -39,7 +39,11 @@ export const auditService = {
       include: {
         performedBy: { select: { name: true } },
         equipment: {
-          select: { name: true, type: { select: { name: true } } },
+          select: {
+            name: true,
+            serialNumber: true,
+            type: { select: { name: true } },
+          },
         },
       },
     });
