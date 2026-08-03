@@ -24,6 +24,7 @@ model User {
   email        String   @unique
   passwordHash String
   role         Role     @default(COLLABORATOR)
+  jobTitle     String? // cargo (texto livre); opcional para não quebrar usuários antigos
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

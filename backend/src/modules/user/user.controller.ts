@@ -7,6 +7,9 @@ const createSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
   role: z.enum(["ADMIN", "COLLABORATOR"]),
+  jobTitle: z
+    .string({ required_error: "Cargo é obrigatório" })
+    .min(2, "Cargo deve ter no mínimo 2 caracteres"),
 });
 
 const resetPasswordSchema = z.object({

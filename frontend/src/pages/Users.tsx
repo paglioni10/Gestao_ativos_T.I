@@ -8,6 +8,7 @@ interface User {
   name: string;
   email: string;
   role: "ADMIN" | "COLLABORATOR";
+  jobTitle: string | null;
   createdAt: string;
 }
 
@@ -16,6 +17,7 @@ const emptyForm = {
   email: "",
   password: "",
   role: "COLLABORATOR" as "ADMIN" | "COLLABORATOR",
+  jobTitle: "",
 };
 
 export function Users() {
@@ -128,6 +130,16 @@ export function Users() {
               <option value="ADMIN">Administrador</option>
             </select>
           </div>
+          <div className="field">
+            <label htmlFor="user-job-title">Cargo</label>
+            <input
+              id="user-job-title"
+              value={form.jobTitle}
+              onChange={(e) => setForm({ ...form, jobTitle: e.target.value })}
+              placeholder="Ex.: Analista de Suporte"
+              required
+            />
+          </div>
           <button type="submit" className="btn btn-primary">
             Criar usuário
           </button>
@@ -174,6 +186,7 @@ export function Users() {
             <tr>
               <th scope="col">Nome</th>
               <th scope="col">E-mail</th>
+              <th scope="col">Cargo</th>
               <th scope="col">Papel</th>
               <th scope="col">Ações</th>
             </tr>
@@ -183,6 +196,7 @@ export function Users() {
               <tr key={u.id}>
                 <td>{u.name}</td>
                 <td>{u.email}</td>
+                <td>{u.jobTitle ?? "—"}</td>
                 <td>
                   {u.role === "ADMIN" ? (
                     <Badge tone="blue">Administrador</Badge>
@@ -206,7 +220,7 @@ export function Users() {
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={4} className="empty">
+                <td colSpan={5} className="empty">
                   Nenhum usuário cadastrado.
                 </td>
               </tr>
