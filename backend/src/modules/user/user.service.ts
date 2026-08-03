@@ -48,7 +48,7 @@ export const userService = {
 
   // Redefine a senha de um usuário (admin), tipicamente em resposta a um
   // pedido de "esqueci minha senha". A nova senha é comunicada por fora
-  // (WhatsApp, presencial etc.) — o projeto não tem envio de e-mail.
+  // (Teams, presencial etc.) — o projeto não tem envio de e-mail.
   async resetPassword(id: string, newPassword: string, performedById: string) {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {

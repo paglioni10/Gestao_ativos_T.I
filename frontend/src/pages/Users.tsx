@@ -139,7 +139,7 @@ export function Users() {
           <p className="muted" style={{ marginTop: 0 }}>
             Defina uma nova senha para{" "}
             <strong>{users.find((u) => u.id === resettingId)?.name}</strong> e
-            avise a pessoa por fora (WhatsApp, presencial etc.).
+            avise a pessoa por fora (Teams, presencial etc.).
           </p>
           <div className="form-row">
             <div className="field">
