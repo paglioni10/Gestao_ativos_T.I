@@ -15,6 +15,10 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
 export const authController = {
   async register(req: Request, res: Response) {
     const data = registerSchema.parse(req.body);
@@ -26,5 +30,15 @@ export const authController = {
     const data = loginSchema.parse(req.body);
     const result = await authService.login(data);
     return res.json(result);
+  },
+
+  async forgotPassword(req: Request, res: Response) {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    await authService.forgotPassword(email);
+    // Mensagem genérica, sempre a mesma, exista ou não o e-mail.
+    return res.json({
+      message:
+        "Se o e-mail existir, o administrador foi notificado e entrará em contato com uma nova senha.",
+    });
   },
 };

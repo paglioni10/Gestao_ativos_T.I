@@ -9,6 +9,10 @@ const createSchema = z.object({
   role: z.enum(["ADMIN", "COLLABORATOR"]),
 });
 
+const resetPasswordSchema = z.object({
+  password: z.string().min(6),
+});
+
 export const userController = {
   async list(_req: Request, res: Response) {
     const users = await userService.list();
@@ -19,5 +23,11 @@ export const userController = {
     const data = createSchema.parse(req.body);
     const user = await userService.create(data, req.user!.sub);
     return res.status(201).json(user);
+  },
+
+  async resetPassword(req: Request, res: Response) {
+    const { password } = resetPasswordSchema.parse(req.body);
+    await userService.resetPassword(req.params.id, password, req.user!.sub);
+    return res.status(204).send();
   },
 };

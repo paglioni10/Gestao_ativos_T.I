@@ -9,3 +9,9 @@ authRoutes.post("/register", asyncHandler(authController.register));
 
 // POST /api/auth/login     -> autentica e devolve token
 authRoutes.post("/login", asyncHandler(authController.login));
+
+// POST /api/auth/forgot-password -> registra pedido de redefinição (admin resolve)
+authRoutes.post(
+  "/forgot-password",
+  asyncHandler(authController.forgotPassword)
+);

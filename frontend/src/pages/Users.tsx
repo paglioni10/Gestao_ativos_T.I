@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
+import { PasswordInput } from "../components/PasswordInput";
 import { api } from "../lib/api";
 
 interface User {
@@ -22,6 +23,10 @@ export function Users() {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+
+  // Redefinição de senha (admin)
+  const [resettingId, setResettingId] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
 
   async function load() {
     const res = await api.get<User[]>("/users");
@@ -46,6 +51,21 @@ export function Users() {
     }
   }
 
+  async function handleResetPassword(e: FormEvent) {
+    e.preventDefault();
+    if (!resettingId) return;
+    setError("");
+    setOk("");
+    try {
+      await api.patch(`/users/${resettingId}/password`, { password: newPassword });
+      setOk("Senha redefinida. Avise o colaborador pela nova senha.");
+      setResettingId(null);
+      setNewPassword("");
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? "Erro ao redefinir senha");
+    }
+  }
+
   return (
     <div>
       <h1>Colaboradores</h1>
@@ -53,7 +73,14 @@ export function Users() {
 
       {error && <p className="alert-error">{error}</p>}
       {ok && (
-        <p className="alert-error" style={{ background: "var(--green-bg)", color: "var(--green-fg)", borderColor: "var(--green-fg)" }}>
+        <p
+          className="alert-error"
+          style={{
+            background: "var(--green-bg)",
+            color: "var(--green-fg)",
+            borderColor: "var(--green-fg)",
+          }}
+        >
           {ok}
         </p>
       )}
@@ -81,11 +108,10 @@ export function Users() {
           </div>
           <div className="field">
             <label htmlFor="user-password">Senha</label>
-            <input
+            <PasswordInput
               id="user-password"
-              type="password"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={(v) => setForm({ ...form, password: v })}
               required
             />
           </div>
@@ -108,6 +134,40 @@ export function Users() {
         </div>
       </form>
 
+      {resettingId && (
+        <form className="panel" onSubmit={handleResetPassword}>
+          <p className="muted" style={{ marginTop: 0 }}>
+            Defina uma nova senha para{" "}
+            <strong>{users.find((u) => u.id === resettingId)?.name}</strong> e
+            avise a pessoa por fora (WhatsApp, presencial etc.).
+          </p>
+          <div className="form-row">
+            <div className="field">
+              <label htmlFor="new-password">Nova senha</label>
+              <PasswordInput
+                id="new-password"
+                value={newPassword}
+                onChange={setNewPassword}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary">
+              Salvar nova senha
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setResettingId(null);
+                setNewPassword("");
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
+
       <div className="panel" style={{ padding: 0 }}>
         <table className="table">
           <thead>
@@ -115,6 +175,7 @@ export function Users() {
               <th scope="col">Nome</th>
               <th scope="col">E-mail</th>
               <th scope="col">Papel</th>
+              <th scope="col">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -129,11 +190,23 @@ export function Users() {
                     <Badge tone="gray">Colaborador</Badge>
                   )}
                 </td>
+                <td>
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => {
+                      setResettingId(u.id);
+                      setNewPassword("");
+                      setOk("");
+                    }}
+                  >
+                    Redefinir senha
+                  </button>
+                </td>
               </tr>
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={3} className="empty">
+                <td colSpan={4} className="empty">
                   Nenhum usuário cadastrado.
                 </td>
               </tr>

@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env.js";
 import { AppError } from "../../lib/AppError.js";
+import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
 import type { Role } from "@prisma/client";
 
@@ -50,6 +51,24 @@ export const authService = {
     }
 
     return this.toAuthResponse(user.id, user.name, user.email, user.role);
+  },
+
+  // Solicita redefinição de senha. Não há envio de e-mail configurado no
+  // projeto, então isso segue o mesmo padrão de governança do cofre de
+  // senhas: o pedido fica registrado na auditoria para o admin ver e
+  // redefinir manualmente (POST /users/:id/password), comunicando a nova
+  // senha por fora. Sempre retorna sucesso genérico — nunca revela se o
+  // e-mail existe ou não (evita enumeração de contas).
+  async forgotPassword(email: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      await recordAudit({
+        action: "PASSWORD_RESET_REQUESTED",
+        entity: "User",
+        entityId: user.id,
+        metadata: { email },
+      });
+    }
   },
 
   // Monta a resposta padrão: dados públicos do usuário + token assinado.

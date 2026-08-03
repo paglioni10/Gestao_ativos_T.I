@@ -45,4 +45,24 @@ export const userService = {
     });
     return user;
   },
+
+  // Redefine a senha de um usuário (admin), tipicamente em resposta a um
+  // pedido de "esqueci minha senha". A nova senha é comunicada por fora
+  // (WhatsApp, presencial etc.) — o projeto não tem envio de e-mail.
+  async resetPassword(id: string, newPassword: string, performedById: string) {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new AppError("Usuário não encontrado", 404);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id }, data: { passwordHash } });
+
+    await recordAudit({
+      action: "USER_PASSWORD_RESET",
+      entity: "User",
+      entityId: id,
+      performedById,
+    });
+  },
 };

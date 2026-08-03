@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/Badge";
+import { PasswordInput } from "../components/PasswordInput";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
@@ -346,13 +347,10 @@ export function EquipmentDetail() {
               </div>
               <div className="field">
                 <label htmlFor="cred-secret">Senha</label>
-                <input
+                <PasswordInput
                   id="cred-secret"
-                  type="password"
                   value={credForm.secret}
-                  onChange={(e) =>
-                    setCredForm({ ...credForm, secret: e.target.value })
-                  }
+                  onChange={(v) => setCredForm({ ...credForm, secret: v })}
                   required
                 />
               </div>
