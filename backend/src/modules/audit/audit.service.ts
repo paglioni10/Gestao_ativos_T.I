@@ -1,12 +1,39 @@
 import { prisma } from "../../lib/prisma.js";
 
+export type AuditPeriod = "week" | "month" | "semester" | "year";
+
+// Calcula o início do período informado (semana começa na segunda-feira).
+function periodStart(period: AuditPeriod): Date {
+  const now = new Date();
+  switch (period) {
+    case "week": {
+      const day = now.getDay(); // 0 = domingo, 1 = segunda, ...
+      const diffToMonday = day === 0 ? 6 : day - 1;
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      d.setDate(d.getDate() - diffToMonday);
+      return d;
+    }
+    case "month":
+      return new Date(now.getFullYear(), now.getMonth(), 1);
+    case "semester": {
+      const startMonth = now.getMonth() < 6 ? 0 : 6;
+      return new Date(now.getFullYear(), startMonth, 1);
+    }
+    case "year":
+      return new Date(now.getFullYear(), 0, 1);
+  }
+}
+
 export const auditService = {
   // Lista os registros mais recentes da trilha de auditoria.
-  // Se um tipo de equipamento (typeId) for informado, filtra os eventos
-  // ligados a equipamentos daquele tipo.
-  async list(typeId?: string) {
+  // - typeId: filtra os eventos ligados a equipamentos daquele tipo.
+  // - period: filtra por janela de tempo (semana/mês/semestre/ano atual).
+  async list(typeId?: string, period?: AuditPeriod) {
     return prisma.auditLog.findMany({
-      where: typeId ? { equipment: { typeId } } : undefined,
+      where: {
+        ...(typeId ? { equipment: { typeId } } : {}),
+        ...(period ? { createdAt: { gte: periodStart(period) } } : {}),
+      },
       orderBy: { createdAt: "desc" },
       take: 100,
       include: {

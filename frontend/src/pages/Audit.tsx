@@ -36,42 +36,70 @@ const ACTIONS: Record<string, { label: string; tone: string }> = {
   REQUEST_DENIED: { label: "Acesso a senha negado", tone: "red" },
 };
 
+const PERIODS: { value: string; label: string }[] = [
+  { value: "", label: "Sem filtro de data" },
+  { value: "week", label: "Semana atual" },
+  { value: "month", label: "Mês atual" },
+  { value: "semester", label: "Semestre atual" },
+  { value: "year", label: "Ano atual" },
+];
+
 export function Audit() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [types, setTypes] = useState<EquipmentType[]>([]);
   const [typeId, setTypeId] = useState("");
+  const [period, setPeriod] = useState("");
 
   // Carrega os tipos uma vez (para o filtro).
   useEffect(() => {
     api.get<EquipmentType[]>("/equipment-types").then((res) => setTypes(res.data));
   }, []);
 
-  // Recarrega a trilha sempre que o filtro muda.
+  // Recarrega a trilha sempre que algum filtro muda.
   useEffect(() => {
+    const params: Record<string, string> = {};
+    if (typeId) params.typeId = typeId;
+    if (period) params.period = period;
     api
-      .get<AuditLog[]>("/audit", { params: typeId ? { typeId } : undefined })
+      .get<AuditLog[]>("/audit", { params: Object.keys(params).length ? params : undefined })
       .then((res) => setLogs(res.data));
-  }, [typeId]);
+  }, [typeId, period]);
 
   return (
     <div>
       <h1>Trilha de auditoria</h1>
       <p className="muted">Registro imutável de quem fez o quê e quando</p>
 
-      <div className="field" style={{ maxWidth: 260, marginBottom: 16 }}>
-        <label htmlFor="audit-filter">Filtrar por equipamento</label>
-        <select
-          id="audit-filter"
-          value={typeId}
-          onChange={(e) => setTypeId(e.target.value)}
-        >
-          <option value="">Todos os equipamentos</option>
-          {types.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
+      <div className="form-row" style={{ marginBottom: 16 }}>
+        <div className="field" style={{ maxWidth: 260 }}>
+          <label htmlFor="audit-filter">Filtrar por equipamento</label>
+          <select
+            id="audit-filter"
+            value={typeId}
+            onChange={(e) => setTypeId(e.target.value)}
+          >
+            <option value="">Todos os equipamentos</option>
+            {types.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ maxWidth: 220 }}>
+          <label htmlFor="audit-period">Filtrar por período</label>
+          <select
+            id="audit-period"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+          >
+            {PERIODS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="panel" style={{ padding: 0 }}>
