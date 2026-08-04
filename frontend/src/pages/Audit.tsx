@@ -9,6 +9,7 @@ interface AuditLog {
   createdAt: string;
   performedBy: { name: string } | null;
   equipment: { name: string; serialNumber: string } | null;
+  metadata: Record<string, unknown> | null;
 }
 
 interface EquipmentType {
@@ -34,7 +35,23 @@ const ACTIONS: Record<string, { label: string; tone: string }> = {
   REQUEST_CREATED: { label: "Acesso a senha solicitado", tone: "amber" },
   REQUEST_APPROVED: { label: "Acesso a senha aprovado", tone: "green" },
   REQUEST_DENIED: { label: "Acesso a senha negado", tone: "red" },
+  USER_DELETED: { label: "Usuário excluído", tone: "gray" },
+  EQUIPMENT_RELEASED_USER_DELETED: {
+    label: "Equipamento liberado (funcionário excluído)",
+    tone: "amber",
+  },
 };
+
+// Algumas ações têm um texto dinâmico (com nomes específicos), montado a
+// partir do metadata gravado na auditoria, em vez de um rótulo fixo.
+function actionLabel(log: AuditLog): string {
+  if (log.action === "EQUIPMENT_RELEASED_USER_DELETED") {
+    const equipmentName = log.equipment?.name ?? String(log.metadata?.equipmentName ?? "Equipamento");
+    const userName = String(log.metadata?.userName ?? "colaborador");
+    return `${equipmentName} passou a ficar disponível pois ${userName} foi excluído(a)`;
+  }
+  return ACTIONS[log.action]?.label ?? log.action;
+}
 
 const PERIODS: { value: string; label: string }[] = [
   { value: "", label: "Sem filtro de data" },
@@ -120,7 +137,7 @@ export function Audit() {
                   <td>{new Date(log.createdAt).toLocaleString("pt-BR")}</td>
                   <td>
                     <span className={`badge badge-${conf?.tone ?? "gray"}`}>
-                      {conf?.label ?? log.action}
+                      {actionLabel(log)}
                     </span>
                   </td>
                   <td>

@@ -33,4 +33,9 @@ export const userController = {
     await userService.resetPassword(req.params.id, password, req.user!.sub);
     return res.status(204).send();
   },
+
+  async remove(req: Request, res: Response) {
+    await userService.remove(req.params.id, req.user!.sub);
+    return res.status(204).send();
+  },
 };

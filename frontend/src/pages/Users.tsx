@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
 import { PasswordInput } from "../components/PasswordInput";
+import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 
 interface User {
@@ -21,6 +22,7 @@ const emptyForm = {
 };
 
 export function Users() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
@@ -65,6 +67,24 @@ export function Users() {
       setNewPassword("");
     } catch (err: any) {
       setError(getErrorMessage(err, "Erro ao redefinir senha"));
+    }
+  }
+
+  async function handleDelete(u: User) {
+    if (
+      !confirm(
+        `Excluir "${u.name}"? Equipamentos atribuídos a ele(a) ficarão disponíveis novamente.`
+      )
+    )
+      return;
+    setError("");
+    setOk("");
+    try {
+      await api.delete(`/users/${u.id}`);
+      setOk(`Usuário "${u.name}" excluído.`);
+      await load();
+    } catch (err: any) {
+      setError(getErrorMessage(err, "Erro ao excluir usuário"));
     }
   }
 
@@ -215,6 +235,14 @@ export function Users() {
                   >
                     Redefinir senha
                   </button>
+                  {u.id !== currentUser?.id && (
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(u)}
+                    >
+                      Excluir
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

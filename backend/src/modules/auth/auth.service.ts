@@ -41,7 +41,7 @@ export const authService = {
   // Valida credenciais e devolve um token JWT.
   async login({ email, password }: LoginInput) {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
+    if (!user || !user.active) {
       throw new AppError("Credenciais inválidas", 401);
     }
 

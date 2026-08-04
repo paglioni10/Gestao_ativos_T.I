@@ -25,6 +25,10 @@ model User {
   passwordHash String
   role         Role     @default(COLLABORATOR)
   jobTitle     String? // cargo (texto livre); opcional para não quebrar usuários antigos
+  // "Excluir" um usuário é uma baixa lógica (active=false), não uma remoção
+  // real: apagar a linha quebraria o histórico de atribuições e auditoria
+  // que a referenciam. Usuários inativos somem das listas e não logam mais.
+  active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

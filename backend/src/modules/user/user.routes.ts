@@ -16,3 +16,6 @@ userRoutes.post("/", asyncHandler(userController.create));
 
 // PATCH /api/users/:id/password -> redefine a senha de um usuário
 userRoutes.patch("/:id/password", asyncHandler(userController.resetPassword));
+
+// DELETE /api/users/:id -> exclui usuário (libera equipamentos atribuídos)
+userRoutes.delete("/:id", asyncHandler(userController.remove));

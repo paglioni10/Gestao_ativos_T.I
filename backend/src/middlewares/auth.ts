@@ -45,9 +45,9 @@ export async function ensureAuth(
   try {
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, role: true },
+      select: { id: true, role: true, active: true },
     });
-    if (!user) {
+    if (!user || !user.active) {
       return next(new AppError("Sessão inválida. Faça login novamente.", 401));
     }
     req.user = { sub: user.id, role: user.role };
