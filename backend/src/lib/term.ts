@@ -5,44 +5,49 @@ import PDFDocument from "pdfkit";
 // Pasta onde os termos gerados ficam salvos (ignorada pelo git).
 const UPLOADS_DIR = join(process.cwd(), "uploads");
 
-interface TermData {
-  assignmentId: string;
-  equipmentName: string;
-  equipmentType?: string;
-  equipmentSerial: string;
-  receiverName: string;
-  assignedAt: Date;
-  signatureHash?: string;
-  signatureDataUrl?: string; // imagem da assinatura em base64 (data URL)
+interface TermItem {
+  name: string;
+  serialNumber: string;
 }
 
-// Cláusulas do termo de responsabilidade.
+interface TermData {
+  assignmentId: string;
+  receiverName: string;
+  jobTitle?: string | null;
+  items: TermItem[]; // todos os equipamentos atualmente com o colaborador
+  assignedAt: Date;
+}
+
+// Cláusulas do termo, na mesma ordem e redação do modelo usado pela empresa.
 const CLAUSES = [
+  "No caso de rescisão definitiva do meu vínculo empregatício, comprometo-me a " +
+    "restituir integralmente todos os bens materiais disponibilizados em regime de " +
+    "comodato para o desempenho das minhas atribuições profissionais, reconhecendo a " +
+    "exclusiva propriedade da empresa sobre eles.",
+  "Em situações de perda, assumo o compromisso de comunicar de imediato o ocorrido " +
+    "ao setor competente, procedendo com o registro de Boletim de Ocorrência, a fim de " +
+    "resguardar os interesses da empresa e mitigar eventuais danos decorrentes da " +
+    "indisponibilidade dos referidos itens.",
   "Comprometo-me a esforçar-me pela adequada preservação dos mencionados bens, " +
     "responsabilizando-me por sua conservação durante o período de utilização no " +
     "exercício das minhas funções. No caso de término do contrato de trabalho, " +
     "comprometo-me a restituir todos os itens, sob pena de sujeição a descontos em " +
     "eventual rescisão contratual, visando assegurar a integridade do patrimônio da empresa.",
-  "Em situações de perda, assumo o compromisso de comunicar de imediato o ocorrido " +
-    "ao setor competente, procedendo com o registro de Boletim de Ocorrência, a fim de " +
-    "resguardar os interesses da empresa e mitigar eventuais danos decorrentes da " +
-    "indisponibilidade dos referidos itens.",
-  "No caso de rescisão definitiva do meu vínculo empregatício, comprometo-me a " +
-    "restituir integralmente todos os bens materiais disponibilizados em regime de " +
-    "comodato para o desempenho das minhas atribuições profissionais, reconhecendo a " +
-    "exclusiva propriedade da empresa sobre eles.",
 ];
 
-// Formata uma data como "16 de junho de 2026".
-function formatLongDate(date: Date): string {
-  return date.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+const MONTHS = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+// Formata como no modelo: "6 de Agosto de 2026" (dia sem zero à esquerda,
+// mês com inicial maiúscula).
+function formatSignatureDate(date: Date): string {
+  return `${date.getDate()} de ${MONTHS[date.getMonth()]} de ${date.getFullYear()}`;
 }
 
-// Gera o PDF do termo de responsabilidade e devolve o caminho relativo do arquivo.
+// Gera o PDF da declaração de responsabilidade e devolve o caminho relativo
+// do arquivo. Segue o modelo de documento já usado pela empresa.
 export async function generateTermPdf(data: TermData): Promise<string> {
   mkdirSync(UPLOADS_DIR, { recursive: true });
   const fileName = `termo-${data.assignmentId}.pdf`;
@@ -52,116 +57,50 @@ export async function generateTermPdf(data: TermData): Promise<string> {
   const stream = createWriteStream(filePath);
   doc.pipe(stream);
 
-  const accent = "#1a1a1a";
-  const muted = "#666666";
-  const contentWidth =
-    doc.page.width - doc.page.margins.left - doc.page.margins.right;
+  const text = "#1a1a1a";
 
-  // ---- Cabeçalho -----------------------------------------------------------
+  // ---- Título ----------------------------------------------------------
   doc
     .font("Helvetica-Bold")
-    .fontSize(16)
-    .fillColor(accent)
-    .text("TERMO DE RESPONSABILIDADE", { align: "center" });
-  doc
-    .font("Helvetica")
-    .fontSize(11)
-    .fillColor(muted)
-    .text("Uso e guarda de equipamento corporativo", { align: "center" });
-  doc.moveDown(0.5);
+    .fontSize(18)
+    .fillColor(text)
+    .text("DECLARAÇÃO DE RESPONSABILIDADE", { align: "center" });
+  doc.moveDown(1.5);
 
-  // Linha divisória
-  const lineY = doc.y;
-  doc
-    .moveTo(doc.page.margins.left, lineY)
-    .lineTo(doc.page.width - doc.page.margins.right, lineY)
-    .strokeColor("#dddddd")
-    .stroke();
-  doc.moveDown(1);
-
-  // ---- Introdução ----------------------------------------------------------
-  doc.font("Helvetica").fontSize(11).fillColor(accent);
+  // ---- Corpo principal ---------------------------------------------------
+  doc.font("Helvetica").fontSize(11).fillColor(text);
   doc.text(
-    `Pelo presente instrumento, eu, ${data.receiverName}, declaro, para os devidos ` +
-      "fins, ter recebido da empresa, em regime de comodato, o equipamento abaixo " +
-      "identificado, destinado exclusivamente ao desempenho das minhas atribuições " +
-      "profissionais:",
+    `Eu, ${data.receiverName}, declaro que todos os itens especificados e entregues ` +
+      "nesta ficha foram entregues em forma de comodato para o exercício da minha " +
+      `função ${data.jobTitle ?? "—"}, sendo os mesmo de exclusiva propriedade da ` +
+      "empresa, bem como seu uso no exercício de minhas atividades, comprometendo-me " +
+      "a respeitar e cumprir o que segue abaixo:",
     { align: "justify" }
   );
   doc.moveDown(1);
 
-  // ---- Identificação do equipamento ---------------------------------------
-  doc.font("Helvetica-Bold").fontSize(12).text("Identificação do equipamento");
-  doc.moveDown(0.4);
-  doc.font("Helvetica").fontSize(11);
-
-  const rows: [string, string][] = [
-    ["Equipamento", data.equipmentName],
-    ["Tipo", data.equipmentType ?? "—"],
-    ["Número de série", data.equipmentSerial],
-    ["Data da entrega", formatLongDate(data.assignedAt)],
-  ];
-  for (const [label, value] of rows) {
-    doc
-      .font("Helvetica-Bold")
-      .text(`${label}: `, { continued: true })
-      .font("Helvetica")
-      .text(value);
-  }
-  doc.moveDown(1);
-
-  // ---- Cláusulas -----------------------------------------------------------
-  doc.font("Helvetica-Bold").fontSize(12).text("Cláusulas");
-  doc.moveDown(0.4);
-  doc.font("Helvetica").fontSize(11);
-  CLAUSES.forEach((clause, i) => {
-    doc.text(`${i + 1}. ${clause}`, { align: "justify" });
-    doc.moveDown(0.6);
+  // ---- Cláusulas (sem numeração, como no modelo) --------------------------
+  CLAUSES.forEach((clause) => {
+    doc.text(clause, { align: "justify" });
+    doc.moveDown(0.8);
   });
-  doc.moveDown(0.5);
-  doc.text(
-    "Declaro estar ciente e de acordo com todas as condições acima estabelecidas.",
-    { align: "justify" }
-  );
-  doc.moveDown(2);
 
-  // ---- Assinatura ----------------------------------------------------------
-  if (data.signatureDataUrl) {
-    try {
-      const base64 = data.signatureDataUrl.split(",")[1] ?? "";
-      const img = Buffer.from(base64, "base64");
-      doc.image(img, doc.page.margins.left, doc.y, { width: 180 });
-      doc.moveDown(0.5);
-    } catch {
-      // Assinatura inválida: segue sem a imagem, mantendo a linha abaixo.
-    }
-  }
+  // ---- RELAÇÃO -------------------------------------------------------------
+  doc.moveDown(0.4);
+  doc.text("RELAÇÃO");
+  doc.moveDown(0.3);
+  data.items.forEach((item) => {
+    doc.text(`${item.name};`);
+  });
+  doc.moveDown(1);
 
-  // Linha de assinatura + nome
-  const signLineY = doc.y + 6;
-  doc
-    .moveTo(doc.page.margins.left, signLineY)
-    .lineTo(doc.page.margins.left + 260, signLineY)
-    .strokeColor("#999999")
-    .stroke();
-  doc.moveDown(0.6);
-  doc.font("Helvetica-Bold").fontSize(11).fillColor(accent).text(data.receiverName);
-  doc.font("Helvetica").fontSize(10).fillColor(muted).text("Assinatura do colaborador");
+  // ---- PATRIMONIO ------------------------------------------------------------
+  const serials = data.items.map((i) => i.serialNumber).join(", ");
+  doc.text(`PATRIMONIO: ${serials}`);
+  doc.moveDown(1.5);
 
-  // ---- Rodapé: integridade -------------------------------------------------
-  doc.moveDown(2);
-  doc
-    .fontSize(8)
-    .fillColor(muted)
-    .text(
-      `Documento gerado eletronicamente em ${data.assignedAt.toLocaleString("pt-BR")}.`,
-      { align: "left" }
-    );
-  if (data.signatureHash) {
-    doc.text(`Hash de integridade (SHA-256): ${data.signatureHash}`, {
-      width: contentWidth,
-    });
-  }
+  // ---- Local e data ----------------------------------------------------------
+  doc.text(`Palhoça, ${formatSignatureDate(data.assignedAt)}`);
 
   doc.end();
 

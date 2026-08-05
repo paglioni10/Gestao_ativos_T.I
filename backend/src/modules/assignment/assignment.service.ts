@@ -31,7 +31,6 @@ export const assignmentService = {
     // 1. Validações de negócio antes de tocar no banco.
     const equipment = await prisma.equipment.findUnique({
       where: { id: equipmentId },
-      include: { type: { select: { name: true } } },
     });
     if (!equipment) {
       throw new AppError("Equipamento não encontrado", 404);
@@ -60,6 +59,8 @@ export const assignmentService = {
 
     // 3. Hash de integridade da assinatura (se houver): SHA-256 sobre a
     //    assinatura + id + data. Qualquer alteração futura muda o hash.
+    // Mantido para fins de integridade interna, mesmo que o termo em PDF
+    // não imprima mais uma linha de assinatura (ver lib/term.ts).
     let signatureHash: string | undefined;
     if (signatureDataUrl) {
       signatureHash = createHash("sha256")
@@ -69,17 +70,24 @@ export const assignmentService = {
         .digest("hex");
     }
 
-    // 4. Gera o PDF do termo (efeito colateral fora da transação) e grava o
+    // 4. A declaração relaciona TODOS os equipamentos que o colaborador tem
+    //    em mãos no momento (não só o que está sendo entregue agora).
+    const activeAssignments = await prisma.assignment.findMany({
+      where: { receiverId, status: "ACTIVE" },
+      include: { equipment: { select: { name: true, serialNumber: true } } },
+    });
+
+    // 5. Gera o PDF do termo (efeito colateral fora da transação) e grava o
     //    caminho + o hash na atribuição.
     const termPdfPath = await generateTermPdf({
       assignmentId: assignment.id,
-      equipmentName: equipment.name,
-      equipmentType: equipment.type.name,
-      equipmentSerial: equipment.serialNumber,
       receiverName: receiver.name,
+      jobTitle: receiver.jobTitle,
+      items: activeAssignments.map((a) => ({
+        name: a.equipment.name,
+        serialNumber: a.equipment.serialNumber,
+      })),
       assignedAt: assignment.assignedAt,
-      signatureHash,
-      signatureDataUrl,
     });
 
     const updated = await prisma.assignment.update({
