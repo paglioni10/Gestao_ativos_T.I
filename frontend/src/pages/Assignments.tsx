@@ -1,6 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
-import { SignaturePad } from "../components/SignaturePad";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 
@@ -10,7 +9,6 @@ interface Assignment {
   assignedAt: string;
   returnedAt: string | null;
   termPdfPath: string | null;
-  signatureHash: string | null;
   equipment: { id: string; name: string; serialNumber: string };
   receiver: { id: string; name: string };
 }
@@ -36,7 +34,6 @@ export function Assignments() {
   const [users, setUsers] = useState<User[]>([]);
   const [equipmentIds, setEquipmentIds] = useState<string[]>([]);
   const [receiverId, setReceiverId] = useState("");
-  const [signature, setSignature] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -65,7 +62,7 @@ export function Assignments() {
   }
 
   // Registra uma entrega para cada equipamento selecionado, para o mesmo
-  // colaborador, reaproveitando a mesma assinatura em todos os termos.
+  // colaborador.
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -78,11 +75,7 @@ export function Assignments() {
     const failed: string[] = [];
     for (const equipmentId of equipmentIds) {
       try {
-        await api.post("/assignments", {
-          equipmentId,
-          receiverId,
-          signatureDataUrl: signature ?? undefined,
-        });
+        await api.post("/assignments", { equipmentId, receiverId });
       } catch (err: any) {
         const eq = available.find((a) => a.id === equipmentId);
         failed.push(`${eq?.name ?? equipmentId}: ${getErrorMessage(err, "erro")}`);
@@ -100,7 +93,6 @@ export function Assignments() {
 
     setEquipmentIds([]);
     setReceiverId("");
-    setSignature(null);
     await load();
   }
 
@@ -143,60 +135,55 @@ export function Assignments() {
 
       {isAdmin && (
         <form className="panel" onSubmit={handleSubmit}>
-          <div className="split-form">
-            <div className="fields">
-              <div className="field">
-                <label>
-                  Equipamentos disponíveis{" "}
-                  {equipmentIds.length > 0 && (
-                    <span className="muted">({equipmentIds.length} selecionado(s))</span>
-                  )}
-                </label>
-                <div className="checklist" role="group" aria-label="Equipamentos disponíveis">
-                  {available.map((eq) => (
-                    <label key={eq.id}>
-                      <input
-                        type="checkbox"
-                        checked={equipmentIds.includes(eq.id)}
-                        onChange={() => toggleEquipment(eq.id)}
-                      />
-                      {eq.name} ({eq.serialNumber})
-                    </label>
-                  ))}
-                  {available.length === 0 && (
-                    <div className="muted" style={{ padding: 10, fontSize: 13 }}>
-                      Nenhum equipamento disponível.
-                    </div>
-                  )}
-                </div>
+          <div className="form-row">
+            <div className="field">
+              <label>
+                Equipamentos disponíveis{" "}
+                {equipmentIds.length > 0 && (
+                  <span className="muted">({equipmentIds.length} selecionado(s))</span>
+                )}
+              </label>
+              <div className="checklist" role="group" aria-label="Equipamentos disponíveis">
+                {available.map((eq) => (
+                  <label key={eq.id}>
+                    <input
+                      type="checkbox"
+                      checked={equipmentIds.includes(eq.id)}
+                      onChange={() => toggleEquipment(eq.id)}
+                    />
+                    {eq.name} ({eq.serialNumber})
+                  </label>
+                ))}
+                {available.length === 0 && (
+                  <div className="muted" style={{ padding: 10, fontSize: 13 }}>
+                    Nenhum equipamento disponível.
+                  </div>
+                )}
               </div>
-              <div className="field">
-                <label htmlFor="as-receiver">Colaborador</label>
-                <select
-                  id="as-receiver"
-                  value={receiverId}
-                  onChange={(e) => setReceiverId(e.target.value)}
-                  required
-                >
-                  <option value="">Selecione...</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button type="submit" className="btn btn-primary" disabled={submitting}>
-                {submitting
-                  ? "Registrando..."
-                  : equipmentIds.length > 1
-                  ? `Registrar entrega (${equipmentIds.length})`
-                  : "Registrar entrega"}
-              </button>
             </div>
-            <div className="aside">
-              <SignaturePad onChange={setSignature} width={360} height={150} />
+            <div className="field">
+              <label htmlFor="as-receiver">Colaborador</label>
+              <select
+                id="as-receiver"
+                value={receiverId}
+                onChange={(e) => setReceiverId(e.target.value)}
+                required
+              >
+                <option value="">Selecione...</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
             </div>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting
+                ? "Registrando..."
+                : equipmentIds.length > 1
+                ? `Registrar entrega (${equipmentIds.length})`
+                : "Registrar entrega"}
+            </button>
           </div>
         </form>
       )}

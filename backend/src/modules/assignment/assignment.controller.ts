@@ -7,7 +7,6 @@ const createSchema = z.object({
   equipmentId: z.string().uuid(),
   receiverId: z.string().uuid(),
   notes: z.string().optional(),
-  signatureDataUrl: z.string().optional(),
 });
 
 export const assignmentController = {

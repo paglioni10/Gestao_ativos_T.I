@@ -91,7 +91,6 @@ enum EquipmentStatus {
 // ---------------------------------------------------------------------------
 // Atribuição = o vínculo entre um equipamento e quem está com ele.
 // returnedAt nulo significa que o equipamento ainda está em poder do usuário.
-// signatureHash guarda a "assinatura" do termo (trilha de responsabilidade).
 // ---------------------------------------------------------------------------
 model Assignment {
   id            String           @id @default(uuid())
@@ -100,7 +99,6 @@ model Assignment {
   returnedAt    DateTime?
   notes         String?
   termPdfPath   String? // caminho do PDF do termo gerado
-  signatureHash String? // hash da assinatura digital do termo
 
   equipment   Equipment @relation(fields: [equipmentId], references: [id])
   equipmentId String

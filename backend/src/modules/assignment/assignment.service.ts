@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { AppError } from "../../lib/AppError.js";
 import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
@@ -8,7 +7,6 @@ interface CreateAssignmentInput {
   equipmentId: string;
   receiverId: string;
   notes?: string;
-  signatureDataUrl?: string; // assinatura capturada no frontend (base64)
 }
 
 export const assignmentService = {
@@ -25,7 +23,7 @@ export const assignmentService = {
 
   // Registra a ENTREGA de um equipamento a um colaborador.
   async create(
-    { equipmentId, receiverId, notes, signatureDataUrl }: CreateAssignmentInput,
+    { equipmentId, receiverId, notes }: CreateAssignmentInput,
     createdById: string
   ) {
     // 1. Validações de negócio antes de tocar no banco.
@@ -57,28 +55,15 @@ export const assignmentService = {
       return created;
     });
 
-    // 3. Hash de integridade da assinatura (se houver): SHA-256 sobre a
-    //    assinatura + id + data. Qualquer alteração futura muda o hash.
-    // Mantido para fins de integridade interna, mesmo que o termo em PDF
-    // não imprima mais uma linha de assinatura (ver lib/term.ts).
-    let signatureHash: string | undefined;
-    if (signatureDataUrl) {
-      signatureHash = createHash("sha256")
-        .update(
-          `${signatureDataUrl}|${assignment.id}|${assignment.assignedAt.toISOString()}`
-        )
-        .digest("hex");
-    }
-
-    // 4. A declaração relaciona TODOS os equipamentos que o colaborador tem
+    // 3. A declaração relaciona TODOS os equipamentos que o colaborador tem
     //    em mãos no momento (não só o que está sendo entregue agora).
     const activeAssignments = await prisma.assignment.findMany({
       where: { receiverId, status: "ACTIVE" },
       include: { equipment: { select: { name: true, serialNumber: true } } },
     });
 
-    // 5. Gera o PDF do termo (efeito colateral fora da transação) e grava o
-    //    caminho + o hash na atribuição.
+    // 4. Gera o PDF do termo (efeito colateral fora da transação) e grava o
+    //    caminho na atribuição.
     const termPdfPath = await generateTermPdf({
       assignmentId: assignment.id,
       receiverName: receiver.name,
@@ -92,7 +77,7 @@ export const assignmentService = {
 
     const updated = await prisma.assignment.update({
       where: { id: assignment.id },
-      data: { termPdfPath, signatureHash },
+      data: { termPdfPath },
     });
 
     await recordAudit({
