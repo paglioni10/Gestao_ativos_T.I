@@ -5,20 +5,52 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:3333/api",
 });
 
-// Antes de cada requisição, anexa o token JWT (se houver) no header.
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Contador de requisições em andamento, para alimentar a barra de progresso
+// global (TopProgressBar). Qualquer chamada via `api` é rastreada aqui,
+// então nenhuma tela precisa lidar com isso individualmente — ela some
+// sozinha, mesmo quando o backend demora para "acordar" (cold start).
+let pending = 0;
+type LoadingListener = (isLoading: boolean) => void;
+const listeners = new Set<LoadingListener>();
 
-// Se a sessão for inválida/expirada (401), limpa o login e volta para a tela
-// de entrada — evita ficar com um token velho causando erros.
-api.interceptors.response.use(
-  (response) => response,
+function setPending(delta: number) {
+  pending = Math.max(0, pending + delta);
+  const isLoading = pending > 0;
+  listeners.forEach((cb) => cb(isLoading));
+}
+
+export function subscribeLoading(cb: LoadingListener): () => void {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+
+// Antes de cada requisição, anexa o token JWT (se houver) no header.
+api.interceptors.request.use(
+  (config) => {
+    setPending(1);
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
   (error) => {
+    setPending(-1);
+    return Promise.reject(error);
+  }
+);
+
+// Ao final de cada requisição (sucesso ou erro), destrava a barra de
+// progresso. Também trata sessão inválida/expirada (401): limpa o login e
+// volta para a tela de entrada, evitando ficar com um token velho causando
+// erros.
+api.interceptors.response.use(
+  (response) => {
+    setPending(-1);
+    return response;
+  },
+  (error) => {
+    setPending(-1);
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");

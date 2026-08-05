@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
+import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
@@ -26,7 +27,9 @@ export function Dashboard() {
     return (
       <div>
         <h1>Olá, {user?.name}</h1>
-        <p className="muted">Carregando métricas...</p>
+        <p className="muted" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Spinner /> Carregando métricas...
+        </p>
       </div>
     );
   }

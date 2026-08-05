@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/Badge";
 import { PasswordInput } from "../components/PasswordInput";
+import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 
@@ -135,7 +136,12 @@ export function EquipmentDetail() {
     }
   }
 
-  if (!equipment) return <p className="muted">Carregando...</p>;
+  if (!equipment)
+    return (
+      <p className="muted" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Spinner /> Carregando ficha do equipamento...
+      </p>
+    );
 
   return (
     <div>

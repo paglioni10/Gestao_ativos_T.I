@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Spinner } from "../components/Spinner";
 import { api } from "../lib/api";
 
 interface AuditLog {
@@ -74,6 +75,7 @@ export function Audit() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [types, setTypes] = useState<EquipmentType[]>([]);
   const [period, setPeriod] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // Um único seletor combina tipo de equipamento e tipo de ação. O valor
   // codifica qual é qual: "type:<id>" ou "action:<NOME>".
@@ -92,9 +94,11 @@ export function Audit() {
     if (typeId) params.typeId = typeId;
     if (action) params.action = action;
     if (period) params.period = period;
+    setLoading(true);
     api
       .get<AuditLog[]>("/audit", { params: Object.keys(params).length ? params : undefined })
-      .then((res) => setLogs(res.data));
+      .then((res) => setLogs(res.data))
+      .finally(() => setLoading(false));
   }, [typeId, action, period]);
 
   return (
@@ -179,12 +183,20 @@ export function Audit() {
                 </tr>
               );
             })}
-            {logs.length === 0 && (
+            {loading ? (
               <tr>
                 <td colSpan={4} className="empty">
-                  Nenhum registro para este filtro.
+                  <Spinner /> Carregando registros...
                 </td>
               </tr>
+            ) : (
+              logs.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="empty">
+                    Nenhum registro para este filtro.
+                  </td>
+                </tr>
+              )
             )}
           </tbody>
         </table>

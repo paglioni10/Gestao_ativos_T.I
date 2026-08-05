@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Logo } from "../components/Logo";
 import { PasswordInput } from "../components/PasswordInput";
+import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
@@ -12,15 +13,18 @@ export function Login() {
   const [email, setEmail] = useState("admin@empresa.com");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   // "Esqueci minha senha"
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotMessage, setForgotMessage] = useState("");
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    setSubmitting(true);
     try {
       await login(email, password);
       navigate("/");
@@ -34,17 +38,22 @@ export function Login() {
       } else {
         setError("Não foi possível conectar ao servidor.");
       }
+    } finally {
+      setSubmitting(false);
     }
   }
 
   async function handleForgot(e: FormEvent) {
     e.preventDefault();
     setForgotMessage("");
+    setForgotSubmitting(true);
     try {
       const res = await api.post("/auth/forgot-password", { email: forgotEmail });
       setForgotMessage(res.data.message);
     } catch {
       setForgotMessage("Não foi possível registrar o pedido. Tente novamente.");
+    } finally {
+      setForgotSubmitting(false);
     }
   }
 
@@ -105,10 +114,17 @@ export function Login() {
               <button
                 type="submit"
                 className="btn btn-primary"
-                style={{ width: "100%" }}
+                style={{ width: "100%", display: "flex", justifyContent: "center", gap: 8 }}
+                disabled={submitting}
               >
-                Entrar
+                {submitting && <Spinner />}
+                {submitting ? "Entrando..." : "Entrar"}
               </button>
+              {submitting && (
+                <p className="muted" style={{ textAlign: "center", marginTop: 10, fontSize: 13 }}>
+                  Isso pode levar alguns segundos se o servidor estiver iniciando.
+                </p>
+              )}
             </form>
           </>
         ) : (
@@ -146,11 +162,18 @@ export function Login() {
                 className="btn"
                 style={{ flex: 1 }}
                 onClick={() => setShowForgot(false)}
+                disabled={forgotSubmitting}
               >
                 Voltar
               </button>
-              <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                Enviar pedido
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ flex: 1, display: "flex", justifyContent: "center", gap: 8 }}
+                disabled={forgotSubmitting}
+              >
+                {forgotSubmitting && <Spinner />}
+                {forgotSubmitting ? "Enviando..." : "Enviar pedido"}
               </button>
             </div>
           </form>

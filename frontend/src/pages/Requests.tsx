@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
 import { PasswordInput } from "../components/PasswordInput";
+import { Spinner } from "../components/Spinner";
 import { api, getErrorMessage } from "../lib/api";
 
 interface ResetRequest {
@@ -17,14 +18,19 @@ export function Requests() {
   const [requests, setRequests] = useState<ResetRequest[]>([]);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // Definir nova senha para um pedido específico
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
 
   async function load() {
-    const res = await api.get<ResetRequest[]>("/password-reset-requests");
-    setRequests(res.data);
+    try {
+      const res = await api.get<ResetRequest[]>("/password-reset-requests");
+      setRequests(res.data);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -150,12 +156,20 @@ export function Requests() {
                 </td>
               </tr>
             ))}
-            {requests.length === 0 && (
+            {loading ? (
               <tr>
                 <td colSpan={5} className="empty">
-                  Nenhuma solicitação de redefinição de senha.
+                  <Spinner /> Carregando solicitações...
                 </td>
               </tr>
+            ) : (
+              requests.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="empty">
+                    Nenhuma solicitação de redefinição de senha.
+                  </td>
+                </tr>
+              )
             )}
           </tbody>
         </table>

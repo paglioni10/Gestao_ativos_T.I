@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
+import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 
@@ -37,17 +38,22 @@ export function Assignments() {
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   async function load() {
-    const [a, eq] = await Promise.all([
-      api.get<Assignment[]>("/assignments"),
-      api.get<Equipment[]>("/equipment", { params: { status: "AVAILABLE" } }),
-    ]);
-    setAssignments(a.data);
-    setAvailable(eq.data);
-    if (isAdmin) {
-      const u = await api.get<User[]>("/users");
-      setUsers(u.data);
+    try {
+      const [a, eq] = await Promise.all([
+        api.get<Assignment[]>("/assignments"),
+        api.get<Equipment[]>("/equipment", { params: { status: "AVAILABLE" } }),
+      ]);
+      setAssignments(a.data);
+      setAvailable(eq.data);
+      if (isAdmin) {
+        const u = await api.get<User[]>("/users");
+        setUsers(u.data);
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -236,12 +242,20 @@ export function Assignments() {
                 )}
               </tr>
             ))}
-            {assignments.length === 0 && (
+            {loading ? (
               <tr>
                 <td colSpan={isAdmin ? 6 : 5} className="empty">
-                  Nenhuma atribuição registrada ainda.
+                  <Spinner /> Carregando atribuições...
                 </td>
               </tr>
+            ) : (
+              assignments.length === 0 && (
+                <tr>
+                  <td colSpan={isAdmin ? 6 : 5} className="empty">
+                    Nenhuma atribuição registrada ainda.
+                  </td>
+                </tr>
+              )
             )}
           </tbody>
         </table>

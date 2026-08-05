@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
 import { PasswordInput } from "../components/PasswordInput";
+import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 
@@ -27,14 +28,19 @@ export function Users() {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // Redefinição de senha (admin)
   const [resettingId, setResettingId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
 
   async function load() {
-    const res = await api.get<User[]>("/users");
-    setUsers(res.data);
+    try {
+      const res = await api.get<User[]>("/users");
+      setUsers(res.data);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -246,12 +252,20 @@ export function Users() {
                 </td>
               </tr>
             ))}
-            {users.length === 0 && (
+            {loading ? (
               <tr>
                 <td colSpan={5} className="empty">
-                  Nenhum usuário cadastrado.
+                  <Spinner /> Carregando usuários...
                 </td>
               </tr>
+            ) : (
+              users.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="empty">
+                    Nenhum usuário cadastrado.
+                  </td>
+                </tr>
+              )
             )}
           </tbody>
         </table>

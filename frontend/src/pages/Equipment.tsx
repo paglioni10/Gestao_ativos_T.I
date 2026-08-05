@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../components/Badge";
+import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 
@@ -26,6 +27,7 @@ export function Equipment() {
   const [form, setForm] = useState({ name: "", typeId: "", serialNumber: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // Filtro por tipo (separado do typeId do formulário de cadastro/edição)
   const [filterTypeId, setFilterTypeId] = useState("");
@@ -35,16 +37,20 @@ export function Equipment() {
   const [newType, setNewType] = useState("");
 
   async function load() {
-    const [eq, tp] = await Promise.all([
-      api.get<Equipment[]>("/equipment", {
-        params: filterTypeId ? { typeId: filterTypeId } : undefined,
-      }),
-      api.get<EquipmentType[]>("/equipment-types"),
-    ]);
-    setItems(eq.data);
-    setTypes(tp.data);
-    // Seleciona um tipo padrão se ainda não houver um escolhido.
-    setForm((f) => (f.typeId ? f : { ...f, typeId: tp.data[0]?.id ?? "" }));
+    try {
+      const [eq, tp] = await Promise.all([
+        api.get<Equipment[]>("/equipment", {
+          params: filterTypeId ? { typeId: filterTypeId } : undefined,
+        }),
+        api.get<EquipmentType[]>("/equipment-types"),
+      ]);
+      setItems(eq.data);
+      setTypes(tp.data);
+      // Seleciona um tipo padrão se ainda não houver um escolhido.
+      setForm((f) => (f.typeId ? f : { ...f, typeId: tp.data[0]?.id ?? "" }));
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -255,14 +261,22 @@ export function Equipment() {
                 )}
               </tr>
             ))}
-            {items.length === 0 && (
+            {loading ? (
               <tr>
                 <td colSpan={isAdmin ? 5 : 4} className="empty">
-                  {filterTypeId
-                    ? "Nenhum equipamento deste tipo."
-                    : "Nenhum equipamento cadastrado ainda."}
+                  <Spinner /> Carregando equipamentos...
                 </td>
               </tr>
+            ) : (
+              items.length === 0 && (
+                <tr>
+                  <td colSpan={isAdmin ? 5 : 4} className="empty">
+                    {filterTypeId
+                      ? "Nenhum equipamento deste tipo."
+                      : "Nenhum equipamento cadastrado ainda."}
+                  </td>
+                </tr>
+              )
             )}
           </tbody>
         </table>

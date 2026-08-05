@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import { RequireAdmin } from "./components/RequireAdmin";
+import { TopProgressBar } from "./components/TopProgressBar";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Assignments } from "./pages/Assignments";
 import { Audit } from "./pages/Audit";
@@ -15,6 +16,7 @@ import { Users } from "./pages/Users";
 export function App() {
   return (
     <AuthProvider>
+      <TopProgressBar />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
