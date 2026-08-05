@@ -2,15 +2,25 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { auditService } from "./audit.service.js";
 
+// Ações que não envolvem diretamente um equipamento, mas ainda assim
+// podem ser filtradas na trilha de auditoria.
+const NON_EQUIPMENT_ACTIONS = [
+  "USER_CREATED",
+  "USER_DELETED",
+  "CREDENTIAL_CREATED",
+  "PASSWORD_RESET_REQUESTED",
+] as const;
+
 const listQuerySchema = z.object({
   typeId: z.string().uuid().optional(),
   period: z.enum(["week", "month", "semester", "year"]).optional(),
+  action: z.enum(NON_EQUIPMENT_ACTIONS).optional(),
 });
 
 export const auditController = {
   async list(req: Request, res: Response) {
-    const { typeId, period } = listQuerySchema.parse(req.query);
-    const logs = await auditService.list(typeId, period);
+    const { typeId, period, action } = listQuerySchema.parse(req.query);
+    const logs = await auditService.list(typeId, period, action);
     return res.json(logs);
   },
 };

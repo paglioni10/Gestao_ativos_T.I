@@ -27,11 +27,14 @@ function periodStart(period: AuditPeriod): Date {
 export const auditService = {
   // Lista os registros mais recentes da trilha de auditoria.
   // - typeId: filtra os eventos ligados a equipamentos daquele tipo.
+  // - action: filtra por um tipo de ação específico (ex: criação de
+  //   usuário), para eventos que não envolvem diretamente um equipamento.
   // - period: filtra por janela de tempo (semana/mês/semestre/ano atual).
-  async list(typeId?: string, period?: AuditPeriod) {
+  async list(typeId?: string, period?: AuditPeriod, action?: string) {
     return prisma.auditLog.findMany({
       where: {
         ...(typeId ? { equipment: { typeId } } : {}),
+        ...(action ? { action } : {}),
         ...(period ? { createdAt: { gte: periodStart(period) } } : {}),
       },
       orderBy: { createdAt: "desc" },

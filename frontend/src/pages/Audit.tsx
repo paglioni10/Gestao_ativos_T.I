@@ -61,11 +61,25 @@ const PERIODS: { value: string; label: string }[] = [
   { value: "year", label: "Ano atual" },
 ];
 
+// Ações que não envolvem diretamente um equipamento, mas podem ser
+// filtradas junto com os tipos de equipamento no mesmo seletor.
+const ACTION_FILTERS: { value: string; label: string }[] = [
+  { value: "USER_CREATED", label: "Usuário criado" },
+  { value: "USER_DELETED", label: "Usuário excluído" },
+  { value: "CREDENTIAL_CREATED", label: "Senha registrada no cofre" },
+  { value: "PASSWORD_RESET_REQUESTED", label: "Pedido de redefinição de senha" },
+];
+
 export function Audit() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [types, setTypes] = useState<EquipmentType[]>([]);
-  const [typeId, setTypeId] = useState("");
   const [period, setPeriod] = useState("");
+
+  // Um único seletor combina tipo de equipamento e tipo de ação. O valor
+  // codifica qual é qual: "type:<id>" ou "action:<NOME>".
+  const [filterValue, setFilterValue] = useState("");
+  const typeId = filterValue.startsWith("type:") ? filterValue.slice(5) : "";
+  const action = filterValue.startsWith("action:") ? filterValue.slice(7) : "";
 
   // Carrega os tipos uma vez (para o filtro).
   useEffect(() => {
@@ -76,11 +90,12 @@ export function Audit() {
   useEffect(() => {
     const params: Record<string, string> = {};
     if (typeId) params.typeId = typeId;
+    if (action) params.action = action;
     if (period) params.period = period;
     api
       .get<AuditLog[]>("/audit", { params: Object.keys(params).length ? params : undefined })
       .then((res) => setLogs(res.data));
-  }, [typeId, period]);
+  }, [typeId, action, period]);
 
   return (
     <div>
@@ -88,19 +103,28 @@ export function Audit() {
       <p className="muted">Registro imutável de quem fez o quê e quando</p>
 
       <div className="form-row" style={{ marginBottom: 16 }}>
-        <div className="field" style={{ maxWidth: 260 }}>
-          <label htmlFor="audit-filter">Filtrar por equipamento</label>
+        <div className="field" style={{ maxWidth: 280 }}>
+          <label htmlFor="audit-filter">Filtrar por:</label>
           <select
             id="audit-filter"
-            value={typeId}
-            onChange={(e) => setTypeId(e.target.value)}
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
           >
-            <option value="">Todos os equipamentos</option>
-            {types.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
+            <option value="">Tudo</option>
+            <optgroup label="Tipo de equipamento">
+              {types.map((t) => (
+                <option key={t.id} value={`type:${t.id}`}>
+                  {t.name}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Outras ações">
+              {ACTION_FILTERS.map((a) => (
+                <option key={a.value} value={`action:${a.value}`}>
+                  {a.label}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
         <div className="field" style={{ maxWidth: 220 }}>
