@@ -22,12 +22,13 @@ const listQuerySchema = z.object({
   status: z
     .enum(["AVAILABLE", "ASSIGNED", "MAINTENANCE", "RETIRED"])
     .optional(),
+  typeId: z.string().uuid().optional(),
 });
 
 export const equipmentController = {
   async list(req: Request, res: Response) {
-    const { status } = listQuerySchema.parse(req.query);
-    const equipment = await equipmentService.list(status);
+    const { status, typeId } = listQuerySchema.parse(req.query);
+    const equipment = await equipmentService.list(status, typeId);
     return res.json(equipment);
   },
 

@@ -19,10 +19,13 @@ interface CreateEquipmentInput {
 type UpdateEquipmentInput = Partial<CreateEquipmentInput>;
 
 export const equipmentService = {
-  // Lista equipamentos, opcionalmente filtrando por status.
-  async list(status?: EquipmentStatus) {
+  // Lista equipamentos, opcionalmente filtrando por status e/ou tipo.
+  async list(status?: EquipmentStatus, typeId?: string) {
     return prisma.equipment.findMany({
-      where: status ? { status } : undefined,
+      where: {
+        ...(status ? { status } : {}),
+        ...(typeId ? { typeId } : {}),
+      },
       orderBy: { createdAt: "desc" },
       include: { type: { select: { id: true, name: true } } },
     });

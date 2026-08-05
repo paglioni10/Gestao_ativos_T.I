@@ -27,13 +27,18 @@ export function Equipment() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
+  // Filtro por tipo (separado do typeId do formulário de cadastro/edição)
+  const [filterTypeId, setFilterTypeId] = useState("");
+
   // Cadastro de novo tipo
   const [addingType, setAddingType] = useState(false);
   const [newType, setNewType] = useState("");
 
   async function load() {
     const [eq, tp] = await Promise.all([
-      api.get<Equipment[]>("/equipment"),
+      api.get<Equipment[]>("/equipment", {
+        params: filterTypeId ? { typeId: filterTypeId } : undefined,
+      }),
       api.get<EquipmentType[]>("/equipment-types"),
     ]);
     setItems(eq.data);
@@ -44,7 +49,7 @@ export function Equipment() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [filterTypeId]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -195,6 +200,22 @@ export function Equipment() {
         </form>
       )}
 
+      <div className="field" style={{ maxWidth: 260, marginBottom: 16 }}>
+        <label htmlFor="eq-filter-type">Filtrar por tipo</label>
+        <select
+          id="eq-filter-type"
+          value={filterTypeId}
+          onChange={(e) => setFilterTypeId(e.target.value)}
+        >
+          <option value="">Todos os tipos</option>
+          {types.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="panel" style={{ padding: 0 }}>
         <table className="table">
           <thead>
@@ -237,7 +258,9 @@ export function Equipment() {
             {items.length === 0 && (
               <tr>
                 <td colSpan={isAdmin ? 5 : 4} className="empty">
-                  Nenhum equipamento cadastrado ainda.
+                  {filterTypeId
+                    ? "Nenhum equipamento deste tipo."
+                    : "Nenhum equipamento cadastrado ainda."}
                 </td>
               </tr>
             )}
