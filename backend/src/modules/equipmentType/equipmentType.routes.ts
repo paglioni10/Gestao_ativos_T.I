@@ -16,3 +16,10 @@ equipmentTypeRoutes.post(
   ensureAdmin,
   asyncHandler(equipmentTypeController.create)
 );
+
+// DELETE /api/equipment-types/:id -> exclui tipo (admin; bloqueado se em uso)
+equipmentTypeRoutes.delete(
+  "/:id",
+  ensureAdmin,
+  asyncHandler(equipmentTypeController.remove)
+);

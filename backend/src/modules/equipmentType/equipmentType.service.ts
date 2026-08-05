@@ -18,4 +18,20 @@ export const equipmentTypeService = {
     }
     return prisma.equipmentType.create({ data: { name: trimmed } });
   },
+
+  // Exclui um tipo. Bloqueado se algum equipamento (mesmo baixado) ainda
+  // referenciar esse tipo — apagar quebraria o registro histórico.
+  async remove(id: string) {
+    const type = await prisma.equipmentType.findUnique({ where: { id } });
+    if (!type) {
+      throw new AppError("Tipo não encontrado", 404);
+    }
+    const inUse = await prisma.equipment.count({ where: { typeId: id } });
+    if (inUse > 0) {
+      throw new AppError(
+        `Não é possível excluir: existem ${inUse} equipamento(s) cadastrado(s) com o tipo "${type.name}".`
+      );
+    }
+    await prisma.equipmentType.delete({ where: { id } });
+  },
 };

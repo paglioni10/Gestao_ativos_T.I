@@ -106,6 +106,18 @@ export function Equipment() {
     }
   }
 
+  // Exclui um tipo (bloqueado no backend se houver equipamento usando-o).
+  async function deleteType(type: EquipmentType) {
+    if (!confirm(`Excluir o tipo "${type.name}"?`)) return;
+    setError("");
+    try {
+      await api.delete(`/equipment-types/${type.id}`);
+      await load();
+    } catch (err: any) {
+      setError(getErrorMessage(err, "Erro ao excluir tipo"));
+    }
+  }
+
   function resetForm() {
     setEditingId(null);
     setForm({ name: "", typeId: types[0]?.id ?? "", serialNumber: "" });
@@ -202,6 +214,47 @@ export function Equipment() {
                 + Cadastrar novo tipo
               </button>
             )}
+          </div>
+
+          {/* Gerenciar tipos existentes */}
+          <div
+            style={{
+              marginTop: 12,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
+              alignItems: "center",
+            }}
+          >
+            <span className="muted" style={{ fontSize: 13 }}>
+              Tipos cadastrados:
+            </span>
+            {types.map((t) => (
+              <span
+                key={t.id}
+                className="badge badge-gray"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                {t.name}
+                <button
+                  type="button"
+                  onClick={() => deleteType(t)}
+                  aria-label={`Excluir tipo ${t.name}`}
+                  title={`Excluir tipo ${t.name}`}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    lineHeight: 1,
+                    color: "inherit",
+                    fontSize: 13,
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
           </div>
         </form>
       )}

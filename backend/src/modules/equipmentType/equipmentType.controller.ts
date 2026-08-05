@@ -15,4 +15,9 @@ export const equipmentTypeController = {
     const type = await equipmentTypeService.create(name);
     return res.status(201).json(type);
   },
+
+  async remove(req: Request, res: Response) {
+    await equipmentTypeService.remove(req.params.id);
+    return res.status(204).send();
+  },
 };

@@ -15,15 +15,7 @@ export async function ensureSeed() {
     console.log(`✅ Admin padrão criado: ${email} / admin123`);
   }
 
-  const tipos = [
-    "Notebook",
-    "Desktop",
-    "Monitor",
-    "Celular",
-    "Periférico",
-    "Ferramenta",
-    "Outro",
-  ];
+  const tipos = ["Notebook", "Desktop", "Monitor", "Celular", "Periférico", "Outro"];
   for (const name of tipos) {
     await prisma.equipmentType.upsert({
       where: { name },
