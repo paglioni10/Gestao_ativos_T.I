@@ -236,13 +236,16 @@ export function Assignments() {
                   ))}
               </select>
             </div>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting
-                ? "Registrando..."
-                : equipmentIds.length > 1
-                ? `Registrar entrega (${equipmentIds.length})`
-                : "Registrar entrega"}
-            </button>
+            <div className="field">
+              <label aria-hidden="true">&nbsp;</label>
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
+                {submitting
+                  ? "Registrando..."
+                  : equipmentIds.length > 1
+                  ? `Registrar entrega (${equipmentIds.length})`
+                  : "Registrar entrega"}
+              </button>
+            </div>
           </div>
         </form>
       )}
