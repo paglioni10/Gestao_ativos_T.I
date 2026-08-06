@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Spinner } from "../components/Spinner";
 import { api } from "../lib/api";
+import { Sector, SECTOR_OPTIONS } from "../lib/sectors";
 
 interface AuditLog {
   id: string;
@@ -75,13 +76,10 @@ export function Audit() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [types, setTypes] = useState<EquipmentType[]>([]);
   const [period, setPeriod] = useState("");
+  const [typeId, setTypeId] = useState("");
+  const [action, setAction] = useState("");
+  const [sector, setSector] = useState<Sector | "">("");
   const [loading, setLoading] = useState(true);
-
-  // Um único seletor combina tipo de equipamento e tipo de ação. O valor
-  // codifica qual é qual: "type:<id>" ou "action:<NOME>".
-  const [filterValue, setFilterValue] = useState("");
-  const typeId = filterValue.startsWith("type:") ? filterValue.slice(5) : "";
-  const action = filterValue.startsWith("action:") ? filterValue.slice(7) : "";
 
   // Carrega os tipos uma vez (para o filtro).
   useEffect(() => {
@@ -94,12 +92,13 @@ export function Audit() {
     if (typeId) params.typeId = typeId;
     if (action) params.action = action;
     if (period) params.period = period;
+    if (sector) params.sector = sector;
     setLoading(true);
     api
       .get<AuditLog[]>("/audit", { params: Object.keys(params).length ? params : undefined })
       .then((res) => setLogs(res.data))
       .finally(() => setLoading(false));
-  }, [typeId, action, period]);
+  }, [typeId, action, period, sector]);
 
   return (
     <div>
@@ -107,32 +106,8 @@ export function Audit() {
       <p className="muted">Registro imutável de quem fez o quê e quando</p>
 
       <div className="form-row" style={{ marginBottom: 16 }}>
-        <div className="field" style={{ maxWidth: 280 }}>
-          <label htmlFor="audit-filter">Filtrar por:</label>
-          <select
-            id="audit-filter"
-            value={filterValue}
-            onChange={(e) => setFilterValue(e.target.value)}
-          >
-            <option value="">Tudo</option>
-            <optgroup label="Tipo de equipamento">
-              {types.map((t) => (
-                <option key={t.id} value={`type:${t.id}`}>
-                  {t.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Outras ações">
-              {ACTION_FILTERS.map((a) => (
-                <option key={a.value} value={`action:${a.value}`}>
-                  {a.label}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-        </div>
         <div className="field" style={{ maxWidth: 220 }}>
-          <label htmlFor="audit-period">Filtrar por período</label>
+          <label htmlFor="audit-period">Data</label>
           <select
             id="audit-period"
             value={period}
@@ -141,6 +116,51 @@ export function Audit() {
             {PERIODS.map((p) => (
               <option key={p.value} value={p.value}>
                 {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ maxWidth: 240 }}>
+          <label htmlFor="audit-type">Equipamento</label>
+          <select
+            id="audit-type"
+            value={typeId}
+            onChange={(e) => setTypeId(e.target.value)}
+          >
+            <option value="">Todos os tipos</option>
+            {types.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ maxWidth: 260 }}>
+          <label htmlFor="audit-action">Ação</label>
+          <select
+            id="audit-action"
+            value={action}
+            onChange={(e) => setAction(e.target.value)}
+          >
+            <option value="">Todas as ações</option>
+            {ACTION_FILTERS.map((a) => (
+              <option key={a.value} value={a.value}>
+                {a.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ maxWidth: 220 }}>
+          <label htmlFor="audit-sector">Setor</label>
+          <select
+            id="audit-sector"
+            value={sector}
+            onChange={(e) => setSector(e.target.value as Sector | "")}
+          >
+            <option value="">Todos os setores</option>
+            {SECTOR_OPTIONS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
               </option>
             ))}
           </select>
