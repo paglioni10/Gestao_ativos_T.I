@@ -20,6 +20,12 @@ interface Equipment {
   name: string;
   serialNumber: string;
   status: string;
+  type: { id: string; name: string };
+}
+
+interface EquipmentType {
+  id: string;
+  name: string;
 }
 
 interface User {
@@ -34,6 +40,8 @@ export function Assignments() {
 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [available, setAvailable] = useState<Equipment[]>([]);
+  const [equipTypes, setEquipTypes] = useState<EquipmentType[]>([]);
+  const [typeFilter, setTypeFilter] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [equipmentIds, setEquipmentIds] = useState<string[]>([]);
   const [sectorFilter, setSectorFilter] = useState<Sector | "">("");
@@ -45,12 +53,14 @@ export function Assignments() {
 
   async function load() {
     try {
-      const [a, eq] = await Promise.all([
+      const [a, eq, tp] = await Promise.all([
         api.get<Assignment[]>("/assignments"),
         api.get<Equipment[]>("/equipment", { params: { status: "AVAILABLE" } }),
+        api.get<EquipmentType[]>("/equipment-types"),
       ]);
       setAssignments(a.data);
       setAvailable(eq.data);
+      setEquipTypes(tp.data);
       if (isAdmin) {
         const u = await api.get<User[]>("/users");
         setUsers(u.data);
@@ -146,6 +156,21 @@ export function Assignments() {
         <form className="panel" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="field">
+              <label htmlFor="as-type">Tipo de equipamento</label>
+              <select
+                id="as-type"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                <option value="">Todos os tipos</option>
+                {equipTypes.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
               <label>
                 Equipamentos disponíveis{" "}
                 {equipmentIds.length > 0 && (
@@ -153,19 +178,24 @@ export function Assignments() {
                 )}
               </label>
               <div className="checklist" role="group" aria-label="Equipamentos disponíveis">
-                {available.map((eq) => (
-                  <label key={eq.id}>
-                    <input
-                      type="checkbox"
-                      checked={equipmentIds.includes(eq.id)}
-                      onChange={() => toggleEquipment(eq.id)}
-                    />
-                    {eq.name} ({eq.serialNumber})
-                  </label>
-                ))}
-                {available.length === 0 && (
+                {available
+                  .filter((eq) => !typeFilter || eq.type.id === typeFilter)
+                  .map((eq) => (
+                    <label key={eq.id}>
+                      <input
+                        type="checkbox"
+                        checked={equipmentIds.includes(eq.id)}
+                        onChange={() => toggleEquipment(eq.id)}
+                      />
+                      {eq.name} ({eq.serialNumber})
+                    </label>
+                  ))}
+                {available.filter((eq) => !typeFilter || eq.type.id === typeFilter)
+                  .length === 0 && (
                   <div className="muted" style={{ padding: 10, fontSize: 13 }}>
-                    Nenhum equipamento disponível.
+                    {typeFilter
+                      ? "Nenhum equipamento disponível deste tipo."
+                      : "Nenhum equipamento disponível."}
                   </div>
                 )}
               </div>
