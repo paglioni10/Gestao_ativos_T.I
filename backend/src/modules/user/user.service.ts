@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import type { Role } from "@prisma/client";
+import type { Role, Sector } from "@prisma/client";
 import { AppError } from "../../lib/AppError.js";
 import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
@@ -10,6 +10,7 @@ interface CreateUserInput {
   password: string;
   role: Role;
   jobTitle: string;
+  sector: Sector;
 }
 
 export const userService = {
@@ -24,6 +25,7 @@ export const userService = {
         email: true,
         role: true,
         jobTitle: true,
+        sector: true,
         createdAt: true,
       },
       orderBy: { name: "asc" },
@@ -32,7 +34,7 @@ export const userService = {
 
   // Cria um usuário (ação administrativa). O admin define o papel e o cargo.
   async create(
-    { name, email, password, role, jobTitle }: CreateUserInput,
+    { name, email, password, role, jobTitle, sector }: CreateUserInput,
     performedById: string
   ) {
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -42,13 +44,14 @@ export const userService = {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { name, email, passwordHash, role, jobTitle },
+      data: { name, email, passwordHash, role, jobTitle, sector },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
         jobTitle: true,
+        sector: true,
         createdAt: true,
       },
     });
@@ -58,7 +61,7 @@ export const userService = {
       entity: "User",
       entityId: user.id,
       performedById,
-      metadata: { email, role, jobTitle },
+      metadata: { email, role, jobTitle, sector },
     });
     return user;
   },

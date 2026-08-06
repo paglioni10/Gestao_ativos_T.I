@@ -25,6 +25,7 @@ model User {
   passwordHash String
   role         Role     @default(COLLABORATOR)
   jobTitle     String? // cargo (texto livre); opcional para não quebrar usuários antigos
+  sector       Sector? // setor da empresa; obrigatório na API, nullable no DB para usuários antigos
   // "Excluir" um usuário é uma baixa lógica (active=false), não uma remoção
   // real: apagar a linha quebraria o histórico de atribuições e auditoria
   // que a referenciam. Usuários inativos somem das listas e não logam mais.
@@ -46,6 +47,19 @@ model User {
 enum Role {
   ADMIN
   COLLABORATOR
+}
+
+enum Sector {
+  TI
+  MARKETING
+  COMERCIAL
+  NAILS
+  RH
+  FABRICA
+  FINANCEIRO
+  FATURAMENTO
+  DIRETORIA
+  TRADE
 }
 
 // ---------------------------------------------------------------------------

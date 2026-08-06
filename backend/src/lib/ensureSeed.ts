@@ -10,9 +10,12 @@ export async function ensureSeed() {
   if (!existing) {
     const passwordHash = await bcrypt.hash("admin123", 10);
     await prisma.user.create({
-      data: { name: "Administrador", email, passwordHash, role: "ADMIN" },
+      data: { name: "Administrador", email, passwordHash, role: "ADMIN", sector: "TI" },
     });
     console.log(`✅ Admin padrão criado: ${email} / admin123`);
+  } else if (!existing.sector) {
+    // Backfill: garantir que o admin antigo tenha um setor válido.
+    await prisma.user.update({ where: { id: existing.id }, data: { sector: "TI" } });
   }
 
   const tipos = ["Notebook", "Desktop", "Monitor", "Celular", "Periférico", "Outro"];

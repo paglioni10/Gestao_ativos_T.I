@@ -5,12 +5,43 @@ import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 
+type Sector =
+  | "TI"
+  | "MARKETING"
+  | "COMERCIAL"
+  | "NAILS"
+  | "RH"
+  | "FABRICA"
+  | "FINANCEIRO"
+  | "FATURAMENTO"
+  | "DIRETORIA"
+  | "TRADE";
+
+const SECTOR_OPTIONS: { value: Sector; label: string }[] = [
+  { value: "TI", label: "T.I" },
+  { value: "MARKETING", label: "Marketing" },
+  { value: "COMERCIAL", label: "Comercial" },
+  { value: "NAILS", label: "Nails" },
+  { value: "RH", label: "RH" },
+  { value: "FABRICA", label: "Fábrica" },
+  { value: "FINANCEIRO", label: "Financeiro" },
+  { value: "FATURAMENTO", label: "Faturamento" },
+  { value: "DIRETORIA", label: "Diretoria" },
+  { value: "TRADE", label: "Trade" },
+];
+
+const SECTOR_LABEL: Record<Sector, string> = SECTOR_OPTIONS.reduce(
+  (acc, o) => ({ ...acc, [o.value]: o.label }),
+  {} as Record<Sector, string>
+);
+
 interface User {
   id: string;
   name: string;
   email: string;
   role: "ADMIN" | "COLLABORATOR";
   jobTitle: string | null;
+  sector: Sector | null;
   createdAt: string;
 }
 
@@ -20,6 +51,7 @@ const emptyForm = {
   password: "",
   role: "COLLABORATOR" as "ADMIN" | "COLLABORATOR",
   jobTitle: "",
+  sector: "" as Sector | "",
 };
 
 export function Users() {
@@ -166,6 +198,26 @@ export function Users() {
               required
             />
           </div>
+          <div className="field">
+            <label htmlFor="user-sector">Setor</label>
+            <select
+              id="user-sector"
+              value={form.sector}
+              onChange={(e) =>
+                setForm({ ...form, sector: e.target.value as Sector | "" })
+              }
+              required
+            >
+              <option value="" disabled>
+                Selecione…
+              </option>
+              {SECTOR_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <button type="submit" className="btn btn-primary">
             Criar usuário
           </button>
@@ -213,6 +265,7 @@ export function Users() {
               <th scope="col">Nome</th>
               <th scope="col">E-mail</th>
               <th scope="col">Cargo</th>
+              <th scope="col">Setor</th>
               <th scope="col">Papel</th>
               <th scope="col">Ações</th>
             </tr>
@@ -223,6 +276,7 @@ export function Users() {
                 <td>{u.name}</td>
                 <td>{u.email}</td>
                 <td>{u.jobTitle ?? "—"}</td>
+                <td>{u.sector ? SECTOR_LABEL[u.sector] : "—"}</td>
                 <td>
                   {u.role === "ADMIN" ? (
                     <Badge tone="blue">Administrador</Badge>
@@ -254,14 +308,14 @@ export function Users() {
             ))}
             {loading ? (
               <tr>
-                <td colSpan={5} className="empty">
+                <td colSpan={6} className="empty">
                   <Spinner /> Carregando usuários...
                 </td>
               </tr>
             ) : (
               users.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="empty">
+                  <td colSpan={6} className="empty">
                     Nenhum usuário cadastrado.
                   </td>
                 </tr>

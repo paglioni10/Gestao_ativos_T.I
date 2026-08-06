@@ -10,6 +10,21 @@ const createSchema = z.object({
   jobTitle: z
     .string({ required_error: "Cargo é obrigatório" })
     .min(2, "Cargo deve ter no mínimo 2 caracteres"),
+  sector: z.enum(
+    [
+      "TI",
+      "MARKETING",
+      "COMERCIAL",
+      "NAILS",
+      "RH",
+      "FABRICA",
+      "FINANCEIRO",
+      "FATURAMENTO",
+      "DIRETORIA",
+      "TRADE",
+    ],
+    { required_error: "Setor é obrigatório", invalid_type_error: "Setor inválido" }
+  ),
 });
 
 const resetPasswordSchema = z.object({
