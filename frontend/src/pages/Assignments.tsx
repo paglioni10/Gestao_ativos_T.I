@@ -3,6 +3,7 @@ import { Badge } from "../components/Badge";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
+import { Sector, SECTOR_OPTIONS } from "../lib/sectors";
 
 interface Assignment {
   id: string;
@@ -24,6 +25,7 @@ interface Equipment {
 interface User {
   id: string;
   name: string;
+  sector: Sector | null;
 }
 
 export function Assignments() {
@@ -34,6 +36,7 @@ export function Assignments() {
   const [available, setAvailable] = useState<Equipment[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [equipmentIds, setEquipmentIds] = useState<string[]>([]);
+  const [sectorFilter, setSectorFilter] = useState<Sector | "">("");
   const [receiverId, setReceiverId] = useState("");
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
@@ -168,6 +171,24 @@ export function Assignments() {
               </div>
             </div>
             <div className="field">
+              <label htmlFor="as-sector">Setor</label>
+              <select
+                id="as-sector"
+                value={sectorFilter}
+                onChange={(e) => {
+                  setSectorFilter(e.target.value as Sector | "");
+                  setReceiverId("");
+                }}
+              >
+                <option value="">Todos os setores</option>
+                {SECTOR_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
               <label htmlFor="as-receiver">Colaborador</label>
               <select
                 id="as-receiver"
@@ -176,11 +197,13 @@ export function Assignments() {
                 required
               >
                 <option value="">Selecione...</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
+                {users
+                  .filter((u) => !sectorFilter || u.sector === sectorFilter)
+                  .map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
               </select>
             </div>
             <button type="submit" className="btn btn-primary" disabled={submitting}>

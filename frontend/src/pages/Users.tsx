@@ -5,35 +5,7 @@ import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 
-type Sector =
-  | "TI"
-  | "MARKETING"
-  | "COMERCIAL"
-  | "NAILS"
-  | "RH"
-  | "FABRICA"
-  | "FINANCEIRO"
-  | "FATURAMENTO"
-  | "DIRETORIA"
-  | "TRADE";
-
-const SECTOR_OPTIONS: { value: Sector; label: string }[] = [
-  { value: "TI", label: "T.I" },
-  { value: "MARKETING", label: "Marketing" },
-  { value: "COMERCIAL", label: "Comercial" },
-  { value: "NAILS", label: "Nails" },
-  { value: "RH", label: "RH" },
-  { value: "FABRICA", label: "Fábrica" },
-  { value: "FINANCEIRO", label: "Financeiro" },
-  { value: "FATURAMENTO", label: "Faturamento" },
-  { value: "DIRETORIA", label: "Diretoria" },
-  { value: "TRADE", label: "Trade" },
-];
-
-const SECTOR_LABEL: Record<Sector, string> = SECTOR_OPTIONS.reduce(
-  (acc, o) => ({ ...acc, [o.value]: o.label }),
-  {} as Record<Sector, string>
-);
+import { Sector, SECTOR_LABEL, SECTOR_OPTIONS } from "../lib/sectors";
 
 interface User {
   id: string;
