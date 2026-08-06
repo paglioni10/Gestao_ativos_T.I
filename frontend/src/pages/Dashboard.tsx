@@ -68,6 +68,12 @@ export function Dashboard() {
           label="Atribuídos agora"
           detail="em poder de colaboradores"
         />
+      </div>
+
+      <div
+        className="stat-grid"
+        style={{ marginTop: 16, gridTemplateColumns: "repeat(2, 1fr)" }}
+      >
         <Stat
           icon="🔧"
           tone="amber"
