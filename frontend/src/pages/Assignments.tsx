@@ -154,7 +154,7 @@ export function Assignments() {
 
       {isAdmin && (
         <form className="panel" onSubmit={handleSubmit}>
-          <div className="form-row">
+          <div className="form-row align-top">
             <div className="field">
               <label htmlFor="as-type">Tipo de equipamento</label>
               <select

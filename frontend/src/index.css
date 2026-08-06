@@ -397,6 +397,10 @@ input:focus-visible {
   flex-wrap: wrap;
   align-items: flex-end;
 }
+/* Variante: campos ancorados no topo (ex.: quando há uma lista alta ao lado). */
+.form-row.align-top {
+  align-items: flex-start;
+}
 .field {
   display: flex;
   flex-direction: column;
