@@ -6,7 +6,6 @@ import { api } from "../lib/api";
 interface Summary {
   equipmentByStatus: Record<string, number>;
   activeAssignments: number;
-  overdueAssignments: number;
   upcomingMaintenance: number;
   overdueMaintenance: number;
 }
@@ -83,14 +82,6 @@ export function Dashboard() {
           label="Manutenções atrasadas"
           detail="requerem atenção imediata"
           alert={summary.overdueMaintenance > 0}
-        />
-        <Stat
-          icon="⏰"
-          tone="red"
-          value={summary.overdueAssignments}
-          label="Atribuições atrasadas"
-          detail="devolução pendente"
-          alert={summary.overdueAssignments > 0}
         />
       </div>
     </div>

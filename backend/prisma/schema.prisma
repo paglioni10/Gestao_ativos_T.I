@@ -132,7 +132,6 @@ model Assignment {
 enum AssignmentStatus {
   ACTIVE // equipamento entregue, ainda não devolvido
   RETURNED // devolvido normalmente
-  OVERDUE // marcado como atrasado
 }
 
 // ---------------------------------------------------------------------------

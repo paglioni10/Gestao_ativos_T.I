@@ -9,7 +9,6 @@ export const dashboardService = {
     const [
       byStatus,
       activeAssignments,
-      overdueAssignments,
       upcomingMaintenance,
       overdueMaintenance,
     ] = await Promise.all([
@@ -20,8 +19,6 @@ export const dashboardService = {
       }),
       // Equipamentos atualmente em poder de alguém.
       prisma.assignment.count({ where: { status: "ACTIVE" } }),
-      // Atribuições marcadas como atrasadas.
-      prisma.assignment.count({ where: { status: "OVERDUE" } }),
       // Manutenções programadas e ainda não concluídas (futuras).
       prisma.maintenanceRecord.count({
         where: { completedAt: null, scheduledFor: { gte: now } },
@@ -40,7 +37,6 @@ export const dashboardService = {
     return {
       equipmentByStatus,
       activeAssignments,
-      overdueAssignments,
       upcomingMaintenance,
       overdueMaintenance,
     };
