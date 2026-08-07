@@ -69,15 +69,15 @@
   --border: #000000;
   --text: #000000;
   --muted: #1a1a1a;
-  --primary: #0033cc;
-  --primary-hover: #001f80;
-  --danger: #a30000;
+  --primary: #b0141a; /* Vermelho da marca escurecido p/ contraste AAA */
+  --primary-hover: #800000;
+  --danger: #800000;
   --danger-bg: #fff0f0;
 
   --green-bg: #e3ffe3;
   --green-fg: #004d00;
-  --blue-bg: #e3ebff;
-  --blue-fg: #002a99;
+  --blue-bg: #ffe3e3; /* "info" no vermelho da marca */
+  --blue-fg: #800000;
   --amber-bg: #fff1d0;
   --amber-fg: #5c3d00;
   --red-bg: #ffe3e3;
