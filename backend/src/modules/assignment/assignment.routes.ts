@@ -20,5 +20,9 @@ assignmentRoutes.patch(
   asyncHandler(assignmentController.returnEquipment)
 );
 
-// GET /api/assignments/:id/term -> baixa o PDF do termo (qualquer logado)
-assignmentRoutes.get("/:id/term", asyncHandler(assignmentController.downloadTerm));
+// GET /api/assignments/:id/term -> baixa o PDF do termo (admin)
+assignmentRoutes.get(
+  "/:id/term",
+  ensureAdmin,
+  asyncHandler(assignmentController.downloadTerm)
+);

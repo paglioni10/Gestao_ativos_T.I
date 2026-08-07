@@ -276,7 +276,7 @@ export function Assignments() {
                   <Badge status={item.status} />
                 </td>
                 <td>
-                  {item.termPdfPath ? (
+                  {isAdmin && item.termPdfPath ? (
                     <button className="btn btn-sm" onClick={() => downloadTerm(item.id)}>
                       Baixar termo
                     </button>
