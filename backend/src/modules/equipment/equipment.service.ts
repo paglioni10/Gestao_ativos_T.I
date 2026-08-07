@@ -39,7 +39,9 @@ export const equipmentService = {
         type: { select: { id: true, name: true } },
         assignments: {
           orderBy: { assignedAt: "desc" },
-          include: { receiver: { select: { id: true, name: true } } },
+          include: {
+            receiver: { select: { id: true, name: true, sector: true } },
+          },
         },
         maintenances: { orderBy: { scheduledFor: "desc" } },
       },
@@ -50,11 +52,55 @@ export const equipmentService = {
     return equipment;
   },
 
-  // Gera um QR Code (data URL PNG) que aponta para a ficha do equipamento.
-  // Escanear o código abre a página de detalhe no frontend.
+  // Ficha PÚBLICA (sem login), acessada ao escanear o QR Code do aparelho.
+  // Expõe apenas dados não sensíveis: nada de credenciais, observações
+  // internas ou histórico completo. Só o essencial para identificar o ativo
+  // e saber com quem ele está agora.
+  async getPublicById(id: string) {
+    const equipment = await prisma.equipment.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        serialNumber: true,
+        status: true,
+        purchaseDate: true,
+        warrantyUntil: true,
+        type: { select: { name: true } },
+        assignments: {
+          where: { status: "ACTIVE" },
+          take: 1,
+          include: {
+            receiver: { select: { name: true, sector: true } },
+          },
+        },
+      },
+    });
+    if (!equipment) {
+      throw new AppError("Equipamento não encontrado", 404);
+    }
+
+    const active = equipment.assignments[0];
+    return {
+      id: equipment.id,
+      name: equipment.name,
+      serialNumber: equipment.serialNumber,
+      status: equipment.status,
+      purchaseDate: equipment.purchaseDate,
+      warrantyUntil: equipment.warrantyUntil,
+      type: equipment.type,
+      currentHolder: active
+        ? { name: active.receiver.name, sector: active.receiver.sector }
+        : null,
+    };
+  },
+
+  // Gera um QR Code (data URL PNG) que aponta para a FICHA PÚBLICA do
+  // equipamento. Escanear o código abre uma página read-only sem exigir
+  // login — pensada para etiqueta colada no aparelho.
   async getQrCode(id: string) {
     await this.getById(id); // garante que o equipamento existe
-    const url = `${env.corsOrigin}/equipamentos/${id}`;
+    const url = `${env.corsOrigin}/ficha/${id}`;
     const qrCode = await QRCode.toDataURL(url, { width: 240, margin: 1 });
     return { url, qrCode };
   },

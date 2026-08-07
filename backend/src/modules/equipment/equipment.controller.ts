@@ -42,6 +42,12 @@ export const equipmentController = {
     return res.json(result);
   },
 
+  // Ficha pública (sem autenticação) — ver equipmentService.getPublicById.
+  async publicById(req: Request, res: Response) {
+    const equipment = await equipmentService.getPublicById(req.params.id);
+    return res.json(equipment);
+  },
+
   async create(req: Request, res: Response) {
     const data = createSchema.parse(req.body);
     const equipment = await equipmentService.create(data, req.user!.sub);

@@ -602,3 +602,17 @@ code {
   border-width: 3px;
   color: var(--primary);
 }
+
+/* Ficha pública (rota /ficha/:id) — página autônoma, fora da casca do app. */
+.public-ficha {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.public-ficha-brand {
+  display: flex;
+  justify-content: center;
+}

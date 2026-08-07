@@ -9,6 +9,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Equipment } from "./pages/Equipment";
 import { EquipmentDetail } from "./pages/EquipmentDetail";
 import { Login } from "./pages/Login";
+import { PublicEquipment } from "./pages/PublicEquipment";
 import { Requests } from "./pages/Requests";
 import { Users } from "./pages/Users";
 
@@ -20,6 +21,9 @@ export function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+
+          {/* Ficha pública (sem login), aberta ao escanear o QR do aparelho. */}
+          <Route path="/ficha/:id" element={<PublicEquipment />} />
 
           {/* Rotas protegidas: compartilham a casca (AppLayout). */}
           <Route element={<AppLayout />}>

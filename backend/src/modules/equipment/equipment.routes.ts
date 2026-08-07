@@ -5,7 +5,14 @@ import { equipmentController } from "./equipment.controller.js";
 
 export const equipmentRoutes = Router();
 
-// Todas as rotas exigem login.
+// Rota PÚBLICA (sem login): ficha read-only aberta ao escanear o QR Code
+// colado no aparelho. Precisa vir ANTES do ensureAuth abaixo.
+equipmentRoutes.get(
+  "/:id/public",
+  asyncHandler(equipmentController.publicById)
+);
+
+// Todas as demais rotas exigem login.
 equipmentRoutes.use(ensureAuth);
 
 // GET  /api/equipment        -> lista (qualquer usuário logado)

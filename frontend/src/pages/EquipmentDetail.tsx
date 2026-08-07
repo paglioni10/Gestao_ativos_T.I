@@ -5,6 +5,7 @@ import { PasswordInput } from "../components/PasswordInput";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
+import { SECTOR_LABEL, Sector } from "../lib/sectors";
 
 interface Maintenance {
   id: string;
@@ -25,7 +26,7 @@ interface AssignmentLite {
   status: string;
   assignedAt: string;
   returnedAt: string | null;
-  receiver: { id: string; name: string };
+  receiver: { id: string; name: string; sector: Sector | null };
 }
 
 interface EquipmentDetail {
@@ -34,6 +35,9 @@ interface EquipmentDetail {
   type: { name: string };
   serialNumber: string;
   status: string;
+  purchaseDate: string | null;
+  warrantyUntil: string | null;
+  notes: string | null;
   assignments: AssignmentLite[];
   maintenances: Maintenance[];
 }
@@ -143,6 +147,22 @@ export function EquipmentDetail() {
       </p>
     );
 
+  // Colaborador que está com o aparelho agora (atribuição ativa), se houver.
+  const activeAssignment = equipment.assignments.find((a) => a.status === "ACTIVE");
+  const fmtDate = (v: string | null) =>
+    v ? new Date(v).toLocaleDateString("pt-BR") : "—";
+
+  // Badge da situação da garantia a partir da data de término.
+  function warrantyBadge(warrantyUntil: string | null) {
+    if (!warrantyUntil) return <span className="muted">—</span>;
+    const days = Math.ceil(
+      (new Date(warrantyUntil).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    );
+    if (days < 0) return <Badge tone="red">Garantia vencida</Badge>;
+    if (days <= 30) return <Badge tone="amber">Vence em {days} dia(s)</Badge>;
+    return <Badge tone="green">Em garantia</Badge>;
+  }
+
   return (
     <div>
       <button type="button" className="back-link" onClick={() => navigate(-1)}>
@@ -181,11 +201,37 @@ export function EquipmentDetail() {
           <dd style={{ margin: 0 }}>
             <Badge status={equipment.status} />
           </dd>
+          <dt className="muted">Responsável atual</dt>
+          <dd style={{ margin: 0 }}>
+            {activeAssignment ? (
+              <>
+                {activeAssignment.receiver.name}
+                {activeAssignment.receiver.sector && (
+                  <span className="muted">
+                    {" "}
+                    · {SECTOR_LABEL[activeAssignment.receiver.sector]}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="muted">Sem responsável (disponível)</span>
+            )}
+          </dd>
+          <dt className="muted">Data de compra</dt>
+          <dd style={{ margin: 0 }}>{fmtDate(equipment.purchaseDate)}</dd>
+          <dt className="muted">Garantia</dt>
+          <dd style={{ margin: 0 }}>{warrantyBadge(equipment.warrantyUntil)}</dd>
+          {equipment.notes && (
+            <>
+              <dt className="muted">Observações</dt>
+              <dd style={{ margin: 0 }}>{equipment.notes}</dd>
+            </>
+          )}
         </dl>
         <div style={{ textAlign: "center", flexShrink: 0 }}>
           {qrCode && <img src={qrCode} alt="QR Code do equipamento" width={150} />}
           <div className="muted" style={{ fontSize: 12 }}>
-            Escaneie para abrir a ficha
+            Escaneie para abrir a ficha pública
           </div>
         </div>
       </div>
