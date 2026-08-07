@@ -1,64 +1,65 @@
 :root {
-  /* Paleta */
-  --bg: #f4f6f9;
+  /* Paleta — Identidade visual American Burrs (vermelho dominante). */
+  --bg: #f5f4f4;
   --surface: #ffffff;
-  --border: #e3e8ef;
-  --text: #1f2937;
-  --muted: #5b6573; /* contraste AA mesmo sobre o fundo claro */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
+  --border: #e5e1e1;
+  --text: #2e2d2c; /* Cinza escuro oficial (Dark grey) */
+  --muted: #6b6664; /* contraste AA sobre o fundo claro */
+  --primary: #e01f26; /* Vermelho oficial */
+  --primary-hover: #a1161b; /* Sombra vermelha da marca */
+  --danger: #941915; /* Vinho da marca, distinto do primário */
+  --danger-bg: #fdecec;
 
-  /* Tons dos badges */
-  --green-bg: #e6f7ed;
-  --green-fg: #137333;
-  --blue-bg: #e7f0fe;
-  --blue-fg: #1a56db;
-  --amber-bg: #fef3da;
-  --amber-fg: #92660a;
+  /* Tons dos badges — usando as cores do brand book */
+  --green-bg: #e2f5ea;
+  --green-fg: #009427; /* Verde complementar oficial */
+  --blue-bg: #fdecec; /* "info": tom vermelho claro da marca */
+  --blue-fg: #c71c22;
+  --amber-bg: #fdeccf;
+  --amber-fg: #b96a04; /* derivado do Laranja #F79316 */
   --red-bg: #fdecec;
-  --red-fg: #c0392b;
-  --gray-bg: #eceff3;
-  --gray-fg: #5b6573;
+  --red-fg: #c71c22; /* Strong Red da marca */
+  --gray-bg: #ecebea;
+  --gray-fg: #6b6664;
 
   --input-bg: #ffffff;
-  --hover-bg: #fafbfc;
+  --hover-bg: #faf9f9;
 
   --radius: 10px;
-  --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow: 0 1px 3px rgba(46, 45, 44, 0.08), 0 1px 2px rgba(46, 45, 44, 0.04);
 
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
   color: var(--text);
 }
 
 /* ---- Tema escuro: sobrescreve as variáveis quando data-theme="dark" ---- */
 [data-theme="dark"] {
-  --bg: #0f141a;
-  --surface: #1a2129;
-  --border: #2b333d;
-  --text: #e5e9ef;
-  --muted: #9aa4b2;
-  --primary: #3b82f6;
-  --primary-hover: #2f6fe0;
-  --danger: #f87171;
-  --danger-bg: #3a1f1f;
+  --bg: #1a1413; /* base escura com leve tom quente da marca */
+  --surface: #241b1a;
+  --border: #3a2c2b;
+  --text: #f2eaea;
+  --muted: #b6a9a8;
+  --primary: #ed2128; /* Strong Red, mais vivo sobre fundo escuro */
+  --primary-hover: #e01f26;
+  --danger: #f0685f;
+  --danger-bg: #3a1d1c;
 
-  --green-bg: #14361f;
-  --green-fg: #5fd08a;
-  --blue-bg: #16263f;
-  --blue-fg: #7fb0f5;
-  --amber-bg: #3a2f12;
-  --amber-fg: #e0b357;
-  --red-bg: #3a1d1d;
+  --green-bg: #10331d;
+  --green-fg: #4fd07f;
+  --blue-bg: #3a1d1c; /* "info" no tom vermelho da marca */
+  --blue-fg: #f08a8a;
+  --amber-bg: #3a2a12;
+  --amber-fg: #f0a94a;
+  --red-bg: #3a1d1c;
   --red-fg: #f08a8a;
-  --gray-bg: #262d36;
-  --gray-fg: #aab3c0;
+  --gray-bg: #2c2322;
+  --gray-fg: #b6a9a8;
 
-  --input-bg: #11171e;
-  --hover-bg: #20272f;
+  --input-bg: #1b1413;
+  --hover-bg: #2c2322;
 
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 /* ---- Alto contraste: preto sobre branco, bordas reforçadas ---- */

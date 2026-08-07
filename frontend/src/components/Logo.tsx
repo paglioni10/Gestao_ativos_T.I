@@ -27,8 +27,8 @@ export function Logo({
             y2="32"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stopColor="#2563eb" />
-            <stop offset="1" stopColor="#4f46e5" />
+            <stop stopColor="#e01f26" />
+            <stop offset="1" stopColor="#a1161b" />
           </linearGradient>
         </defs>
         <rect x="4" y="4" width="24" height="24" rx="6" fill="url(#ti-logo-grad)" />
