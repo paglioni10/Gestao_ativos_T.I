@@ -290,7 +290,7 @@ export function EquipmentDetail() {
                   id="cred-label"
                   value={credForm.label}
                   onChange={(e) => setCredForm({ ...credForm, label: e.target.value })}
-                  placeholder="Senha BIOS"
+                  placeholder="Ex.: Senha BIOS"
                   required
                 />
               </div>
