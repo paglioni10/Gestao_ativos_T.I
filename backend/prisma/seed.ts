@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Popula o banco com um usuário admin inicial para você conseguir logar.
 // Rode com: npm run seed
 async function main() {
-  const email = "admin@empresa.com";
+  const email = "ti@americanburrs.com";
   const passwordHash = await bcrypt.hash("admin123", 10);
 
   await prisma.user.upsert({
@@ -17,6 +17,8 @@ async function main() {
       email,
       passwordHash,
       role: "ADMIN",
+      sector: "TI",
+      jobTitle: "ADM T.I",
     },
   });
 

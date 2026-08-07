@@ -5,12 +5,19 @@ import { prisma } from "./prisma.js";
 // se já existirem, não altera nada. Útil em produção (Render Free não tem
 // Shell para rodar o seed manualmente). Usa apenas dependências de produção.
 export async function ensureSeed() {
-  const email = "admin@empresa.com";
+  const email = "ti@americanburrs.com";
   const existing = await prisma.user.findUnique({ where: { email } });
   if (!existing) {
     const passwordHash = await bcrypt.hash("admin123", 10);
     await prisma.user.create({
-      data: { name: "Administrador", email, passwordHash, role: "ADMIN", sector: "TI" },
+      data: {
+        name: "Administrador",
+        email,
+        passwordHash,
+        role: "ADMIN",
+        sector: "TI",
+        jobTitle: "ADM T.I",
+      },
     });
     console.log(`✅ Admin padrão criado: ${email} / admin123`);
   } else if (!existing.sector) {
