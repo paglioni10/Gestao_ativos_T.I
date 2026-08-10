@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Spinner } from "../components/Spinner";
 import { api } from "../lib/api";
 import { Sector, SECTOR_OPTIONS } from "../lib/sectors";
+import { sortEquipmentTypes } from "../lib/equipmentTypes";
 
 interface AuditLog {
   id: string;
@@ -83,7 +84,9 @@ export function Audit() {
 
   // Carrega os tipos uma vez (para o filtro).
   useEffect(() => {
-    api.get<EquipmentType[]>("/equipment-types").then((res) => setTypes(res.data));
+    api
+      .get<EquipmentType[]>("/equipment-types")
+      .then((res) => setTypes(sortEquipmentTypes(res.data)));
   }, []);
 
   // Recarrega a trilha sempre que algum filtro muda.

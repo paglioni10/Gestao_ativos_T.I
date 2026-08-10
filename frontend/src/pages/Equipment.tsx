@@ -4,6 +4,7 @@ import { Badge } from "../components/Badge";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
+import { sortEquipmentTypes } from "../lib/equipmentTypes";
 
 interface EquipmentType {
   id: string;
@@ -45,9 +46,10 @@ export function Equipment() {
         api.get<EquipmentType[]>("/equipment-types"),
       ]);
       setItems(eq.data);
-      setTypes(tp.data);
+      const sorted = sortEquipmentTypes(tp.data);
+      setTypes(sorted);
       // Seleciona um tipo padrão se ainda não houver um escolhido.
-      setForm((f) => (f.typeId ? f : { ...f, typeId: tp.data[0]?.id ?? "" }));
+      setForm((f) => (f.typeId ? f : { ...f, typeId: sorted[0]?.id ?? "" }));
     } finally {
       setLoading(false);
     }
@@ -99,7 +101,7 @@ export function Equipment() {
       setNewType("");
       setAddingType(false);
       const tp = await api.get<EquipmentType[]>("/equipment-types");
-      setTypes(tp.data);
+      setTypes(sortEquipmentTypes(tp.data));
       setForm((f) => ({ ...f, typeId: res.data.id }));
     } catch (err: any) {
       setError(getErrorMessage(err, "Erro ao cadastrar tipo"));

@@ -4,6 +4,7 @@ import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 import { Sector, SECTOR_OPTIONS } from "../lib/sectors";
+import { sortEquipmentTypes } from "../lib/equipmentTypes";
 
 interface Assignment {
   id: string;
@@ -60,7 +61,7 @@ export function Assignments() {
       ]);
       setAssignments(a.data);
       setAvailable(eq.data);
-      setEquipTypes(tp.data);
+      setEquipTypes(sortEquipmentTypes(tp.data));
       if (isAdmin) {
         const u = await api.get<User[]>("/users");
         setUsers(u.data);
