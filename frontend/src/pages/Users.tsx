@@ -20,7 +20,7 @@ interface User {
 const emptyForm = {
   name: "",
   email: "",
-  password: "",
+  password: "American@!",
   role: "COLLABORATOR" as "ADMIN" | "COLLABORATOR",
   jobTitle: "",
   sector: "" as Sector | "",
@@ -123,6 +123,8 @@ export function Users() {
             <label htmlFor="user-name">Nome</label>
             <input
               id="user-name"
+              name="novo-colaborador-nome"
+              autoComplete="off"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
@@ -132,7 +134,9 @@ export function Users() {
             <label htmlFor="user-email">E-mail</label>
             <input
               id="user-email"
+              name="novo-colaborador-email"
               type="email"
+              autoComplete="off"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
@@ -142,6 +146,8 @@ export function Users() {
             <label htmlFor="user-password">Senha</label>
             <PasswordInput
               id="user-password"
+              name="novo-colaborador-senha"
+              autoComplete="new-password"
               value={form.password}
               onChange={(v) => setForm({ ...form, password: v })}
               required
