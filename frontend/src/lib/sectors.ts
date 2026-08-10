@@ -10,16 +10,17 @@ export type Sector =
   | "DIRETORIA"
   | "TRADE";
 
+// Ordem alfabética (pt-BR) dos rótulos.
 export const SECTOR_OPTIONS: { value: Sector; label: string }[] = [
-  { value: "TI", label: "T.I" },
-  { value: "MARKETING", label: "Marketing" },
   { value: "COMERCIAL", label: "Comercial" },
+  { value: "DIRETORIA", label: "Diretoria" },
+  { value: "FABRICA", label: "Fábrica" },
+  { value: "FATURAMENTO", label: "Faturamento" },
+  { value: "FINANCEIRO", label: "Financeiro" },
+  { value: "MARKETING", label: "Marketing" },
   { value: "NAILS", label: "Nails" },
   { value: "RH", label: "RH" },
-  { value: "FABRICA", label: "Fábrica" },
-  { value: "FINANCEIRO", label: "Financeiro" },
-  { value: "FATURAMENTO", label: "Faturamento" },
-  { value: "DIRETORIA", label: "Diretoria" },
+  { value: "TI", label: "T.I" },
   { value: "TRADE", label: "Trade" },
 ];
 
