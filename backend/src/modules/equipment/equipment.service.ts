@@ -191,4 +191,38 @@ export const equipmentService = {
     });
     return updated;
   },
+
+  // Exclui DEFINITIVAMENTE um equipamento (hard delete), diferente da baixa.
+  // Regras: não pode estar atribuído a alguém; apenas admin (garantido na
+  // rota). Como assignments/manutenções/credenciais têm FK obrigatória para
+  // o equipamento, são removidos junto; a trilha de auditoria é preservada
+  // (equipmentId vira null) para não perder o histórico de ações.
+  async hardDelete(id: string, performedById: string) {
+    const equipment = await this.getById(id);
+
+    if (equipment.status === "ASSIGNED") {
+      throw new AppError(
+        "Não é possível excluir: o equipamento está atribuído a alguém. Registre a devolução primeiro."
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.auditLog.updateMany({
+        where: { equipmentId: id },
+        data: { equipmentId: null },
+      }),
+      prisma.deviceCredential.deleteMany({ where: { equipmentId: id } }),
+      prisma.maintenanceRecord.deleteMany({ where: { equipmentId: id } }),
+      prisma.assignment.deleteMany({ where: { equipmentId: id } }),
+      prisma.equipment.delete({ where: { id } }),
+    ]);
+
+    await recordAudit({
+      action: "EQUIPMENT_DELETED",
+      entity: "Equipment",
+      entityId: id,
+      performedById,
+      metadata: { name: equipment.name, serialNumber: equipment.serialNumber },
+    });
+  },
 };

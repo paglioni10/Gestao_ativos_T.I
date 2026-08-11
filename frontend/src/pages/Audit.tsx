@@ -25,6 +25,7 @@ const ACTIONS: Record<string, { label: string; tone: string }> = {
   EQUIPMENT_CREATED: { label: "Equipamento cadastrado", tone: "green" },
   EQUIPMENT_UPDATED: { label: "Equipamento editado", tone: "blue" },
   EQUIPMENT_RETIRED: { label: "Equipamento baixado", tone: "gray" },
+  EQUIPMENT_DELETED: { label: "Equipamento excluído", tone: "red" },
   ASSIGNMENT_CREATED: { label: "Entrega registrada", tone: "blue" },
   ASSIGNMENT_RETURNED: { label: "Devolução registrada", tone: "green" },
   MAINTENANCE_SCHEDULED: { label: "Manutenção agendada", tone: "amber" },

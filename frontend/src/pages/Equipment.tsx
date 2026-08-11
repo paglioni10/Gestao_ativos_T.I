@@ -91,6 +91,24 @@ export function Equipment() {
     }
   }
 
+  // Exclusão definitiva (hard delete). Diferente da baixa, remove o
+  // equipamento de vez. Bloqueada no backend se estiver atribuído.
+  async function handleHardDelete(item: Equipment) {
+    if (
+      !confirm(
+        `Excluir DEFINITIVAMENTE "${item.name}"? Esta ação não pode ser desfeita.`
+      )
+    )
+      return;
+    setError("");
+    try {
+      await api.delete(`/equipment/${item.id}/permanent`);
+      await load();
+    } catch (err: any) {
+      setError(getErrorMessage(err, "Erro ao excluir equipamento"));
+    }
+  }
+
   // Cadastra um novo tipo e já o seleciona no formulário.
   async function saveType() {
     setError("");
@@ -310,6 +328,14 @@ export function Equipment() {
                         onClick={() => handleDelete(item)}
                       >
                         Baixar
+                      </button>
+                    )}
+                    {item.status !== "ASSIGNED" && (
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleHardDelete(item)}
+                      >
+                        Excluir
                       </button>
                     )}
                   </td>

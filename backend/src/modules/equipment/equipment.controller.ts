@@ -68,4 +68,9 @@ export const equipmentController = {
     const equipment = await equipmentService.remove(req.params.id, req.user!.sub);
     return res.json(equipment);
   },
+
+  async hardRemove(req: Request, res: Response) {
+    await equipmentService.hardDelete(req.params.id, req.user!.sub);
+    return res.status(204).send();
+  },
 };

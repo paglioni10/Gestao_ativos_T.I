@@ -32,3 +32,11 @@ equipmentRoutes.put("/:id", ensureAdmin, asyncHandler(equipmentController.update
 
 // DELETE /api/equipment/:id  -> dá baixa (status RETIRED, apenas admin)
 equipmentRoutes.delete("/:id", ensureAdmin, asyncHandler(equipmentController.remove));
+
+// DELETE /api/equipment/:id/permanent -> exclui de vez (apenas admin;
+// bloqueado se estiver atribuído)
+equipmentRoutes.delete(
+  "/:id/permanent",
+  ensureAdmin,
+  asyncHandler(equipmentController.hardRemove)
+);
