@@ -197,7 +197,7 @@ export const equipmentService = {
   // rota). Como assignments/manutenções/credenciais têm FK obrigatória para
   // o equipamento, são removidos junto; a trilha de auditoria é preservada
   // (equipmentId vira null) para não perder o histórico de ações.
-  async hardDelete(id: string, performedById: string) {
+  async hardDelete(id: string, performedById: string, reason: string) {
     const equipment = await this.getById(id);
 
     if (equipment.status === "ASSIGNED") {
@@ -222,7 +222,11 @@ export const equipmentService = {
       entity: "Equipment",
       entityId: id,
       performedById,
-      metadata: { name: equipment.name, serialNumber: equipment.serialNumber },
+      metadata: {
+        name: equipment.name,
+        serialNumber: equipment.serialNumber,
+        reason,
+      },
     });
   },
 };

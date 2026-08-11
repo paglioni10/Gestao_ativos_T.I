@@ -100,15 +100,20 @@ export function Equipment() {
   // Exclusão definitiva (hard delete). Diferente da baixa, remove o
   // equipamento de vez. Bloqueada no backend se estiver atribuído.
   async function handleHardDelete(item: Equipment) {
-    if (
-      !confirm(
-        `Excluir DEFINITIVAMENTE "${item.name}"? Esta ação não pode ser desfeita.`
-      )
-    )
+    const reason = prompt(
+      `Excluir DEFINITIVAMENTE "${item.name}"? Esta ação não pode ser desfeita.\n\nInforme o motivo da exclusão:`
+    );
+    // prompt retorna null se cancelar; string vazia se confirmar sem digitar.
+    if (reason === null) return;
+    if (reason.trim().length < 3) {
+      setError("Motivo da exclusão é obrigatório (mínimo 3 caracteres).");
       return;
+    }
     setError("");
     try {
-      await api.delete(`/equipment/${item.id}/permanent`);
+      await api.delete(`/equipment/${item.id}/permanent`, {
+        data: { reason: reason.trim() },
+      });
       await load();
     } catch (err: any) {
       setError(getErrorMessage(err, "Erro ao excluir equipamento"));

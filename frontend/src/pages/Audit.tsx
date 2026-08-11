@@ -49,6 +49,11 @@ const ACTIONS: Record<string, { label: string; tone: string }> = {
 // Algumas ações têm um texto dinâmico (com nomes específicos), montado a
 // partir do metadata gravado na auditoria, em vez de um rótulo fixo.
 function actionLabel(log: AuditLog): string {
+  if (log.action === "EQUIPMENT_DELETED") {
+    const name = String(log.metadata?.name ?? "Equipamento");
+    const reason = log.metadata?.reason ? ` — motivo: ${log.metadata.reason}` : "";
+    return `${name} excluído${reason}`;
+  }
   if (log.action === "EQUIPMENT_RELEASED_USER_DELETED") {
     const equipmentName = log.equipment?.name ?? String(log.metadata?.equipmentName ?? "Equipamento");
     const userName = String(log.metadata?.userName ?? "colaborador");

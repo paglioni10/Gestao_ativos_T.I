@@ -18,6 +18,13 @@ const updateSchema = createSchema.partial().refine(
   { message: "Informe ao menos um campo para atualizar" }
 );
 
+const hardRemoveSchema = z.object({
+  reason: z
+    .string({ required_error: "Motivo da exclusão é obrigatório" })
+    .trim()
+    .min(3, "Descreva o motivo da exclusão (mínimo 3 caracteres)"),
+});
+
 const listQuerySchema = z.object({
   status: z
     .enum(["AVAILABLE", "ASSIGNED", "MAINTENANCE", "RETIRED"])
@@ -70,7 +77,8 @@ export const equipmentController = {
   },
 
   async hardRemove(req: Request, res: Response) {
-    await equipmentService.hardDelete(req.params.id, req.user!.sub);
+    const { reason } = hardRemoveSchema.parse(req.body);
+    await equipmentService.hardDelete(req.params.id, req.user!.sub, reason);
     return res.status(204).send();
   },
 };
