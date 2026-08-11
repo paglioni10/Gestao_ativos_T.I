@@ -149,19 +149,6 @@ export function EquipmentDetail() {
 
   // Colaborador que está com o aparelho agora (atribuição ativa), se houver.
   const activeAssignment = equipment.assignments.find((a) => a.status === "ACTIVE");
-  const fmtDate = (v: string | null) =>
-    v ? new Date(v).toLocaleDateString("pt-BR") : "—";
-
-  // Badge da situação da garantia a partir da data de término.
-  function warrantyBadge(warrantyUntil: string | null) {
-    if (!warrantyUntil) return <span className="muted">—</span>;
-    const days = Math.ceil(
-      (new Date(warrantyUntil).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-    );
-    if (days < 0) return <Badge tone="red">Garantia vencida</Badge>;
-    if (days <= 30) return <Badge tone="amber">Vence em {days} dia(s)</Badge>;
-    return <Badge tone="green">Em garantia</Badge>;
-  }
 
   return (
     <div>
@@ -217,10 +204,6 @@ export function EquipmentDetail() {
               <span className="muted">Sem responsável (disponível)</span>
             )}
           </dd>
-          <dt className="muted">Data de compra</dt>
-          <dd style={{ margin: 0 }}>{fmtDate(equipment.purchaseDate)}</dd>
-          <dt className="muted">Garantia</dt>
-          <dd style={{ margin: 0 }}>{warrantyBadge(equipment.warrantyUntil)}</dd>
           {equipment.notes && (
             <>
               <dt className="muted">Observações</dt>
