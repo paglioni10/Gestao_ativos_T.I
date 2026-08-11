@@ -23,23 +23,6 @@ interface PublicEquipment {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api";
 
-function formatDate(value: string | null): string {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("pt-BR");
-}
-
-// Situação da garantia a partir da data de término.
-function warrantyBadge(warrantyUntil: string | null) {
-  if (!warrantyUntil) return <span className="muted">—</span>;
-  const end = new Date(warrantyUntil);
-  const now = new Date();
-  const days = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (days < 0) return <Badge tone="red">Garantia vencida</Badge>;
-  if (days <= 30)
-    return <Badge tone="amber">Vence em {days} dia(s)</Badge>;
-  return <Badge tone="green">Em garantia</Badge>;
-}
-
 export function PublicEquipment() {
   const { id } = useParams<{ id: string }>();
   const [equipment, setEquipment] = useState<PublicEquipment | null>(null);
@@ -124,10 +107,6 @@ export function PublicEquipment() {
                 <span className="muted">Sem responsável (disponível)</span>
               )}
             </dd>
-            <dt className="muted">Data de compra</dt>
-            <dd style={{ margin: 0 }}>{formatDate(equipment.purchaseDate)}</dd>
-            <dt className="muted">Garantia</dt>
-            <dd style={{ margin: 0 }}>{warrantyBadge(equipment.warrantyUntil)}</dd>
           </dl>
         </div>
       )}
