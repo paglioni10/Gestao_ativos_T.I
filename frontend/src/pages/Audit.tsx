@@ -204,6 +204,21 @@ export function Audit() {
                         <br />
                         <span className="muted">{log.equipment.serialNumber}</span>
                       </>
+                    ) : log.action === "EQUIPMENT_DELETED" &&
+                      (log.metadata?.name || log.metadata?.serialNumber) ? (
+                      // Equipamento já excluído: a relação some, mas o nome/série
+                      // ficam guardados no metadata da auditoria.
+                      <>
+                        {String(log.metadata?.name ?? "—")}
+                        {log.metadata?.serialNumber && (
+                          <>
+                            <br />
+                            <span className="muted">
+                              {String(log.metadata.serialNumber)}
+                            </span>
+                          </>
+                        )}
+                      </>
                     ) : (
                       "—"
                     )}
