@@ -17,6 +17,7 @@ interface Equipment {
   type: EquipmentType;
   serialNumber: string;
   status: string;
+  notes: string | null;
 }
 
 export function Equipment() {
@@ -25,7 +26,7 @@ export function Equipment() {
 
   const [items, setItems] = useState<Equipment[]>([]);
   const [types, setTypes] = useState<EquipmentType[]>([]);
-  const [form, setForm] = useState({ name: "", typeId: "", serialNumber: "" });
+  const [form, setForm] = useState({ name: "", typeId: "", serialNumber: "", notes: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -77,7 +78,12 @@ export function Equipment() {
 
   function handleEdit(item: Equipment) {
     setEditingId(item.id);
-    setForm({ name: item.name, typeId: item.type.id, serialNumber: item.serialNumber });
+    setForm({
+      name: item.name,
+      typeId: item.type.id,
+      serialNumber: item.serialNumber,
+      notes: item.notes ?? "",
+    });
   }
 
   async function handleDelete(item: Equipment) {
@@ -140,7 +146,7 @@ export function Equipment() {
 
   function resetForm() {
     setEditingId(null);
-    setForm({ name: "", typeId: types[0]?.id ?? "", serialNumber: "" });
+    setForm({ name: "", typeId: types[0]?.id ?? "", serialNumber: "", notes: "" });
     setAddingType(false);
     setNewType("");
   }
@@ -161,6 +167,7 @@ export function Equipment() {
                 id="eq-name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Ex: Iphone 15"
                 required
               />
             </div>
@@ -185,7 +192,17 @@ export function Equipment() {
                 id="eq-serial"
                 value={form.serialNumber}
                 onChange={(e) => setForm({ ...form, serialNumber: e.target.value })}
+                placeholder="Ex: 0061"
                 required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="eq-notes">Obs:</label>
+              <input
+                id="eq-notes"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="Ex: Capa azul, carregador incluso"
               />
             </div>
             <button type="submit" className="btn btn-primary">
