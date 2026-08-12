@@ -212,7 +212,7 @@ export function Equipment() {
                 }
               />
             </div>
-            <div className="field">
+            <div className="field" style={{ flex: "1 1 200px" }}>
               <label htmlFor="eq-notes">Obs:</label>
               <input
                 id="eq-notes"
@@ -224,10 +224,16 @@ export function Equipment() {
             <button type="submit" className="btn btn-primary">
               {editingId ? "Salvar" : "Cadastrar"}
             </button>
-            {editingId && (
+            {editingId ? (
               <button type="button" className="btn" onClick={resetForm}>
                 Cancelar
               </button>
+            ) : (
+              // Espaçador invisível: reserva o mesmo "slot" do botão Cancelar da
+              // linha "Novo tipo", alinhando "Cadastrar" com "Salvar tipo".
+              <span aria-hidden="true" className="btn" style={{ visibility: "hidden" }}>
+                Cancelar
+              </span>
             )}
           </div>
 
