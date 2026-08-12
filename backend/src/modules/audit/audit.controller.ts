@@ -17,11 +17,14 @@ const SECTORS = [
   "COMERCIAL",
   "NAILS",
   "RH",
-  "FABRICA",
+  "PRODUCAO_AB",
   "FINANCEIRO",
   "FATURAMENTO",
   "DIRETORIA",
   "TRADE",
+  "EDUCACIONAL",
+  "FISCAL",
+  "PRODUCAO_NAILS",
 ] as const;
 
 const listQuerySchema = z.object({

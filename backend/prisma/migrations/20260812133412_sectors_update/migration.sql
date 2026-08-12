@@ -1,0 +1,5 @@
+-- Renomeia "Fábrica" (FABRICA) para "Produção AB" e adiciona novos setores.
+ALTER TYPE "Sector" RENAME VALUE 'FABRICA' TO 'PRODUCAO_AB';
+ALTER TYPE "Sector" ADD VALUE 'EDUCACIONAL';
+ALTER TYPE "Sector" ADD VALUE 'FISCAL';
+ALTER TYPE "Sector" ADD VALUE 'PRODUCAO_NAILS';
