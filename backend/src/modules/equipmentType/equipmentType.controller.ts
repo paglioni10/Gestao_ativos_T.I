@@ -2,7 +2,10 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { equipmentTypeService } from "./equipmentType.service.js";
 
-const createSchema = z.object({ name: z.string().min(2) });
+const createSchema = z.object({
+  name: z.string().min(2),
+  serialRequired: z.boolean().optional().default(true),
+});
 
 export const equipmentTypeController = {
   async list(_req: Request, res: Response) {
@@ -11,8 +14,8 @@ export const equipmentTypeController = {
   },
 
   async create(req: Request, res: Response) {
-    const { name } = createSchema.parse(req.body);
-    const type = await equipmentTypeService.create(name);
+    const { name, serialRequired } = createSchema.parse(req.body);
+    const type = await equipmentTypeService.create(name, serialRequired);
     return res.status(201).json(type);
   },
 

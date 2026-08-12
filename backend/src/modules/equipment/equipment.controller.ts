@@ -5,7 +5,9 @@ import { equipmentService } from "./equipment.service.js";
 const createSchema = z.object({
   name: z.string().min(2),
   typeId: z.string().uuid(),
-  serialNumber: z.string().min(1),
+  // Opcional aqui; a obrigatoriedade real depende da regra do tipo
+  // (serialRequired), validada no service.
+  serialNumber: z.string().optional(),
   purchaseDate: z.coerce.date().optional(),
   warrantyUntil: z.coerce.date().optional(),
   notes: z.string().optional(),

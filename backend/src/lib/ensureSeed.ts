@@ -25,12 +25,20 @@ export async function ensureSeed() {
     await prisma.user.update({ where: { id: existing.id }, data: { sector: "TI" } });
   }
 
-  const tipos = ["Notebook", "Desktop", "Monitor", "Celular", "Periférico", "Outro"];
-  for (const name of tipos) {
+  // Tipos padrão + regra de nº de série (Periférico/Outro não exigem).
+  const tipos: { name: string; serialRequired: boolean }[] = [
+    { name: "Notebook", serialRequired: true },
+    { name: "Desktop", serialRequired: true },
+    { name: "Monitor", serialRequired: true },
+    { name: "Celular", serialRequired: true },
+    { name: "Periférico", serialRequired: false },
+    { name: "Outro", serialRequired: false },
+  ];
+  for (const { name, serialRequired } of tipos) {
     await prisma.equipmentType.upsert({
       where: { name },
       update: {},
-      create: { name },
+      create: { name, serialRequired },
     });
   }
 }

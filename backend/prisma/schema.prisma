@@ -72,7 +72,7 @@ enum Sector {
 model Equipment {
   id            String          @id @default(uuid())
   name          String
-  serialNumber  String          @unique
+  serialNumber  String?         @unique
   status        EquipmentStatus @default(AVAILABLE)
   purchaseDate  DateTime?
   warrantyUntil DateTime?
@@ -94,6 +94,9 @@ model Equipment {
 model EquipmentType {
   id        String      @id @default(uuid())
   name      String      @unique
+  // Define se o nº de série é obrigatório ao cadastrar equipamentos deste
+  // tipo. Ex.: Notebook exige; Periférico/Outro não.
+  serialRequired Boolean @default(true)
   createdAt DateTime    @default(now())
   equipments Equipment[]
 }

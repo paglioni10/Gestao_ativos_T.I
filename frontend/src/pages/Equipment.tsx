@@ -9,13 +9,14 @@ import { sortEquipmentTypes } from "../lib/equipmentTypes";
 interface EquipmentType {
   id: string;
   name: string;
+  serialRequired: boolean;
 }
 
 interface Equipment {
   id: string;
   name: string;
   type: EquipmentType;
-  serialNumber: string;
+  serialNumber: string | null;
   status: string;
   notes: string | null;
 }
@@ -37,6 +38,7 @@ export function Equipment() {
   // Cadastro de novo tipo
   const [addingType, setAddingType] = useState(false);
   const [newType, setNewType] = useState("");
+  const [newTypeSerialRequired, setNewTypeSerialRequired] = useState(true);
 
   async function load() {
     try {
@@ -81,7 +83,7 @@ export function Equipment() {
     setForm({
       name: item.name,
       typeId: item.type.id,
-      serialNumber: item.serialNumber,
+      serialNumber: item.serialNumber ?? "",
       notes: item.notes ?? "",
     });
   }
@@ -126,8 +128,10 @@ export function Equipment() {
     try {
       const res = await api.post<EquipmentType>("/equipment-types", {
         name: newType,
+        serialRequired: newTypeSerialRequired,
       });
       setNewType("");
+      setNewTypeSerialRequired(true);
       setAddingType(false);
       const tp = await api.get<EquipmentType[]>("/equipment-types");
       setTypes(sortEquipmentTypes(tp.data));
@@ -192,13 +196,20 @@ export function Equipment() {
               </select>
             </div>
             <div className="field">
-              <label htmlFor="eq-serial">Nº de série</label>
+              <label htmlFor="eq-serial">
+                Nº de série
+                {!(
+                  types.find((t) => t.id === form.typeId)?.serialRequired ?? true
+                ) && <span className="muted"> (opcional)</span>}
+              </label>
               <input
                 id="eq-serial"
                 value={form.serialNumber}
                 onChange={(e) => setForm({ ...form, serialNumber: e.target.value })}
                 placeholder="Ex: 0061"
-                required
+                required={
+                  types.find((t) => t.id === form.typeId)?.serialRequired ?? true
+                }
               />
             </div>
             <div className="field">
@@ -232,6 +243,21 @@ export function Equipment() {
                     onChange={(e) => setNewType(e.target.value)}
                     placeholder="Ex.: Tablet"
                   />
+                </div>
+                <div className="field">
+                  <label
+                    htmlFor="new-type-serial"
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <input
+                      id="new-type-serial"
+                      type="checkbox"
+                      style={{ width: "auto" }}
+                      checked={newTypeSerialRequired}
+                      onChange={(e) => setNewTypeSerialRequired(e.target.checked)}
+                    />
+                    Exigir nº de série
+                  </label>
                 </div>
                 <button type="button" className="btn btn-primary" onClick={saveType}>
                   Salvar tipo
@@ -335,7 +361,7 @@ export function Equipment() {
                   <Link to={`/equipamentos/${item.id}`}>{item.name}</Link>
                 </td>
                 <td>{item.type.name}</td>
-                <td>{item.serialNumber}</td>
+                <td>{item.serialNumber || "—"}</td>
                 <td>
                   <Badge status={item.status} />
                 </td>

@@ -8,7 +8,8 @@ export const equipmentTypeService = {
   },
 
   // Cadastra um novo tipo (nome único, sem diferenciar maiúsc./minúsc.).
-  async create(name: string) {
+  // serialRequired define se equipamentos deste tipo exigem nº de série.
+  async create(name: string, serialRequired: boolean) {
     const trimmed = name.trim();
     const existing = await prisma.equipmentType.findFirst({
       where: { name: { equals: trimmed, mode: "insensitive" } },
@@ -16,7 +17,7 @@ export const equipmentTypeService = {
     if (existing) {
       throw new AppError("Já existe um tipo com esse nome");
     }
-    return prisma.equipmentType.create({ data: { name: trimmed } });
+    return prisma.equipmentType.create({ data: { name: trimmed, serialRequired } });
   },
 
   // Exclui um tipo. Bloqueado se algum equipamento (mesmo baixado) ainda

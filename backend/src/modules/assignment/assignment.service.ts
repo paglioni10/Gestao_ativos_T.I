@@ -70,7 +70,7 @@ export const assignmentService = {
       jobTitle: receiver.jobTitle,
       items: activeAssignments.map((a) => ({
         name: a.equipment.name,
-        serialNumber: a.equipment.serialNumber,
+        serialNumber: a.equipment.serialNumber ?? "—",
       })),
       assignedAt: assignment.assignedAt,
     });

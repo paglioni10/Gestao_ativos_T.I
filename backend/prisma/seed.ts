@@ -26,12 +26,19 @@ async function main() {
 
   // Tipos de equipamento padrão (em português). Novos podem ser cadastrados
   // pela própria aplicação.
-  const tipos = ["Notebook", "Desktop", "Monitor", "Celular", "Periférico", "Outro"];
-  for (const name of tipos) {
+  const tipos: { name: string; serialRequired: boolean }[] = [
+    { name: "Notebook", serialRequired: true },
+    { name: "Desktop", serialRequired: true },
+    { name: "Monitor", serialRequired: true },
+    { name: "Celular", serialRequired: true },
+    { name: "Periférico", serialRequired: false },
+    { name: "Outro", serialRequired: false },
+  ];
+  for (const { name, serialRequired } of tipos) {
     await prisma.equipmentType.upsert({
       where: { name },
       update: {},
-      create: { name },
+      create: { name, serialRequired },
     });
   }
   console.log(`✅ ${tipos.length} tipos de equipamento criados`);

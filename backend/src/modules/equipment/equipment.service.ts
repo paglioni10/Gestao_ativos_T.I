@@ -1,4 +1,4 @@
-import type { EquipmentStatus } from "@prisma/client";
+import type { EquipmentStatus, Prisma } from "@prisma/client";
 import QRCode from "qrcode";
 import { env } from "../../config/env.js";
 import { AppError } from "../../lib/AppError.js";
@@ -8,7 +8,7 @@ import { prisma } from "../../lib/prisma.js";
 interface CreateEquipmentInput {
   name: string;
   typeId: string;
-  serialNumber: string;
+  serialNumber?: string;
   purchaseDate?: Date;
   warrantyUntil?: Date;
   notes?: string;
@@ -105,15 +105,9 @@ export const equipmentService = {
     return { url, qrCode };
   },
 
-  // Cria um equipamento. O serialNumber é único (validado pelo banco).
+  // Cria um equipamento. A obrigatoriedade do nº de série depende da regra
+  // do tipo (serialRequired). Quando não informado, é gravado como null.
   async create(data: CreateEquipmentInput, performedById: string) {
-    const existing = await prisma.equipment.findUnique({
-      where: { serialNumber: data.serialNumber },
-    });
-    if (existing) {
-      throw new AppError("Já existe equipamento com este número de série");
-    }
-
     const type = await prisma.equipmentType.findUnique({
       where: { id: data.typeId },
     });
@@ -121,7 +115,26 @@ export const equipmentService = {
       throw new AppError("Tipo de equipamento inválido");
     }
 
-    const equipment = await prisma.equipment.create({ data });
+    const serial = data.serialNumber?.trim() || null;
+
+    if (type.serialRequired && !serial) {
+      throw new AppError(
+        `Nº de série é obrigatório para equipamentos do tipo "${type.name}".`
+      );
+    }
+
+    if (serial) {
+      const existing = await prisma.equipment.findUnique({
+        where: { serialNumber: serial },
+      });
+      if (existing) {
+        throw new AppError("Já existe equipamento com este número de série");
+      }
+    }
+
+    const equipment = await prisma.equipment.create({
+      data: { ...data, serialNumber: serial },
+    });
     await recordAudit({
       action: "EQUIPMENT_CREATED",
       entity: "Equipment",
@@ -140,19 +153,38 @@ export const equipmentService = {
     performedById: string
   ) {
     // Garante que existe (e dá um 404 claro se não).
-    await this.getById(id);
+    const current = await this.getById(id);
 
-    // Se o número de série mudou, não pode colidir com o de outro equipamento.
-    if (data.serialNumber) {
-      const other = await prisma.equipment.findUnique({
-        where: { serialNumber: data.serialNumber },
-      });
-      if (other && other.id !== id) {
-        throw new AppError("Já existe equipamento com este número de série");
+    // Normaliza o nº de série quando enviado no update (vazio => null).
+    const data2: Prisma.EquipmentUncheckedUpdateInput = { ...data };
+    if (data.serialNumber !== undefined) {
+      const serial = data.serialNumber?.trim() || null;
+      data2.serialNumber = serial;
+
+      // Respeita a regra do tipo (o do update, se mudou, senão o atual).
+      const typeId = data.typeId ?? current.typeId;
+      const type = await prisma.equipmentType.findUnique({ where: { id: typeId } });
+      if (type?.serialRequired && !serial) {
+        throw new AppError(
+          `Nº de série é obrigatório para equipamentos do tipo "${type.name}".`
+        );
+      }
+
+      // Se informado, não pode colidir com o de outro equipamento.
+      if (serial) {
+        const other = await prisma.equipment.findUnique({
+          where: { serialNumber: serial },
+        });
+        if (other && other.id !== id) {
+          throw new AppError("Já existe equipamento com este número de série");
+        }
       }
     }
 
-    const equipment = await prisma.equipment.update({ where: { id }, data });
+    const equipment = await prisma.equipment.update({
+      where: { id },
+      data: data2,
+    });
     await recordAudit({
       action: "EQUIPMENT_UPDATED",
       entity: "Equipment",
