@@ -234,8 +234,8 @@ export function Equipment() {
           {/* Cadastro de novo tipo */}
           <div style={{ marginTop: 12 }}>
             {addingType ? (
-              <div className="form-row">
-                <div className="field">
+              <div className="form-row" style={{ alignItems: "flex-end" }}>
+                <div className="field" style={{ flex: "1 1 220px" }}>
                   <label htmlFor="new-type">Novo tipo</label>
                   <input
                     id="new-type"
@@ -244,21 +244,26 @@ export function Equipment() {
                     placeholder="Ex.: Tablet"
                   />
                 </div>
-                <div className="field">
-                  <label
-                    htmlFor="new-type-serial"
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <input
-                      id="new-type-serial"
-                      type="checkbox"
-                      style={{ width: "auto" }}
-                      checked={newTypeSerialRequired}
-                      onChange={(e) => setNewTypeSerialRequired(e.target.checked)}
-                    />
-                    Exigir nº de série
-                  </label>
-                </div>
+                <label
+                  htmlFor="new-type-serial"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    height: 38,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    id="new-type-serial"
+                    type="checkbox"
+                    style={{ width: "auto", minWidth: 0 }}
+                    checked={newTypeSerialRequired}
+                    onChange={(e) => setNewTypeSerialRequired(e.target.checked)}
+                  />
+                  Exigir nº de série
+                </label>
                 <button type="button" className="btn btn-primary" onClick={saveType}>
                   Salvar tipo
                 </button>
@@ -268,6 +273,7 @@ export function Equipment() {
                   onClick={() => {
                     setAddingType(false);
                     setNewType("");
+                    setNewTypeSerialRequired(true);
                   }}
                 >
                   Cancelar
