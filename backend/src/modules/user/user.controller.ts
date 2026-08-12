@@ -34,6 +34,22 @@ const resetPasswordSchema = z.object({
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
 });
 
+const importSchema = z.object({
+  rows: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        email: z.string().optional(),
+        jobTitle: z.string().optional(),
+        sector: z.string().optional(),
+        role: z.string().optional(),
+        password: z.string().optional(),
+      })
+    )
+    .min(1, "A planilha está vazia")
+    .max(2000, "Limite de 2000 linhas por importação"),
+});
+
 export const userController = {
   async list(_req: Request, res: Response) {
     const users = await userService.list();
@@ -44,6 +60,12 @@ export const userController = {
     const data = createSchema.parse(req.body);
     const user = await userService.create(data, req.user!.sub);
     return res.status(201).json(user);
+  },
+
+  async importMany(req: Request, res: Response) {
+    const { rows } = importSchema.parse(req.body);
+    const report = await userService.importMany(rows, req.user!.sub);
+    return res.json(report);
   },
 
   async resetPassword(req: Request, res: Response) {

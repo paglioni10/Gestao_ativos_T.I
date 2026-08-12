@@ -66,6 +66,128 @@ export const userService = {
     return user;
   },
 
+  // Importa vários colaboradores de uma planilha (rejeição parcial). Cada
+  // linha é validada e criada individualmente; as válidas entram, as
+  // inválidas voltam num relatório com o motivo. Setor e Papel vêm por
+  // nome/rótulo e são casados com os valores válidos (ignora acento/caixa).
+  async importMany(
+    rows: {
+      name?: string;
+      email?: string;
+      jobTitle?: string;
+      sector?: string;
+      role?: string;
+      password?: string;
+    }[],
+    performedById: string
+  ) {
+    const norm = (s: string) =>
+      s
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "");
+
+    // Aceita tanto o valor do enum quanto o rótulo exibido no sistema.
+    const sectorMap: Record<string, Sector> = {};
+    const sectorLabels: { value: Sector; label: string }[] = [
+      { value: "COMERCIAL", label: "Comercial" },
+      { value: "DIRETORIA", label: "Diretoria" },
+      { value: "EDUCACIONAL", label: "Educacional" },
+      { value: "FATURAMENTO", label: "Faturamento" },
+      { value: "FINANCEIRO", label: "Financeiro" },
+      { value: "FISCAL", label: "Fiscal" },
+      { value: "MARKETING", label: "Marketing" },
+      { value: "NAILS", label: "Nails" },
+      { value: "PRODUCAO_AB", label: "Produção AB" },
+      { value: "PRODUCAO_NAILS", label: "Produção Nails" },
+      { value: "RH", label: "RH" },
+      { value: "TI", label: "T.I" },
+      { value: "TRADE", label: "Trade" },
+    ];
+    for (const { value, label } of sectorLabels) {
+      sectorMap[norm(value)] = value;
+      sectorMap[norm(label)] = value;
+    }
+
+    const resolveRole = (raw: string): Role | null => {
+      const n = norm(raw);
+      if (!n) return "COLLABORATOR"; // padrão quando não informado
+      if (["admin", "administrador"].includes(n)) return "ADMIN";
+      if (["colaborador", "collaborator"].includes(n)) return "COLLABORATOR";
+      return null;
+    };
+
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const DEFAULT_PASSWORD = "American@!";
+
+    let created = 0;
+    const errors: { line: number; message: string }[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const line = i + 2; // linha 1 = cabeçalho
+      const row = rows[i];
+      const name = (row.name ?? "").trim();
+      const email = (row.email ?? "").trim();
+      const jobTitle = (row.jobTitle ?? "").trim();
+      const sectorRaw = (row.sector ?? "").trim();
+      const roleRaw = (row.role ?? "").trim();
+      const password = (row.password ?? "").trim() || DEFAULT_PASSWORD;
+
+      // Linha totalmente vazia é ignorada.
+      if (!name && !email && !jobTitle && !sectorRaw) continue;
+
+      if (name.length < 2) {
+        errors.push({ line, message: "Nome deve ter no mínimo 2 caracteres" });
+        continue;
+      }
+      if (!emailRe.test(email)) {
+        errors.push({ line, message: "E-mail inválido" });
+        continue;
+      }
+      if (jobTitle.length < 2) {
+        errors.push({ line, message: "Cargo deve ter no mínimo 2 caracteres" });
+        continue;
+      }
+      const sector = sectorMap[norm(sectorRaw)];
+      if (!sector) {
+        errors.push({
+          line,
+          message: `Setor "${sectorRaw || "(vazio)"}" não é válido`,
+        });
+        continue;
+      }
+      const role = resolveRole(roleRaw);
+      if (!role) {
+        errors.push({
+          line,
+          message: `Papel "${roleRaw}" inválido (use Administrador ou Colaborador)`,
+        });
+        continue;
+      }
+      if (password.length < 6) {
+        errors.push({ line, message: "Senha deve ter no mínimo 6 caracteres" });
+        continue;
+      }
+
+      try {
+        await this.create(
+          { name, email, password, role, jobTitle, sector },
+          performedById
+        );
+        created++;
+      } catch (err) {
+        errors.push({
+          line,
+          message: err instanceof AppError ? err.message : "Erro ao cadastrar",
+        });
+      }
+    }
+
+    return { created, errors, total: rows.length };
+  },
+
   // Redefine a senha de um usuário (admin), tipicamente em resposta a um
   // pedido de "esqueci minha senha". A nova senha é comunicada por fora
   // (Teams, presencial etc.) — o projeto não tem envio de e-mail.
