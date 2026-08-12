@@ -73,9 +73,24 @@ const PERIODS: { value: string; label: string }[] = [
 // Ações que não envolvem diretamente um equipamento, mas podem ser
 // filtradas junto com os tipos de equipamento no mesmo seletor.
 const ACTION_FILTERS: { value: string; label: string }[] = [
+  { value: "EQUIPMENT_CREATED", label: "Equipamento cadastrado" },
+  { value: "EQUIPMENT_UPDATED", label: "Equipamento editado" },
+  { value: "EQUIPMENT_RETIRED", label: "Equipamento baixado" },
+  { value: "EQUIPMENT_DELETED", label: "Equipamento excluído" },
+  {
+    value: "EQUIPMENT_RELEASED_USER_DELETED",
+    label: "Equipamento liberado (usuário excluído)",
+  },
+  { value: "ASSIGNMENT_CREATED", label: "Entrega registrada" },
+  { value: "ASSIGNMENT_RETURNED", label: "Devolução registrada" },
+  { value: "MAINTENANCE_SCHEDULED", label: "Manutenção agendada" },
+  { value: "MAINTENANCE_COMPLETED", label: "Manutenção concluída" },
+  { value: "CREDENTIAL_CREATED", label: "Senha registrada no cofre" },
+  { value: "CREDENTIAL_REVEALED", label: "Senha revelada" },
+  { value: "CREDENTIAL_DELETED", label: "Senha removida do cofre" },
   { value: "USER_CREATED", label: "Usuário criado" },
   { value: "USER_DELETED", label: "Usuário excluído" },
-  { value: "CREDENTIAL_CREATED", label: "Senha registrada no cofre" },
+  { value: "USER_PASSWORD_RESET", label: "Senha redefinida pelo admin" },
   { value: "PASSWORD_RESET_REQUESTED", label: "Pedido de redefinição de senha" },
 ];
 

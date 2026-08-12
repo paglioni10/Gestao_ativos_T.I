@@ -2,12 +2,23 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { auditService } from "./audit.service.js";
 
-// Ações que não envolvem diretamente um equipamento, mas ainda assim
-// podem ser filtradas na trilha de auditoria.
-const NON_EQUIPMENT_ACTIONS = [
+// Todas as ações registráveis na trilha, disponíveis para filtrar por tipo.
+const AUDIT_ACTIONS = [
+  "EQUIPMENT_CREATED",
+  "EQUIPMENT_UPDATED",
+  "EQUIPMENT_RETIRED",
+  "EQUIPMENT_DELETED",
+  "EQUIPMENT_RELEASED_USER_DELETED",
+  "ASSIGNMENT_CREATED",
+  "ASSIGNMENT_RETURNED",
+  "MAINTENANCE_SCHEDULED",
+  "MAINTENANCE_COMPLETED",
+  "CREDENTIAL_CREATED",
+  "CREDENTIAL_REVEALED",
+  "CREDENTIAL_DELETED",
   "USER_CREATED",
   "USER_DELETED",
-  "CREDENTIAL_CREATED",
+  "USER_PASSWORD_RESET",
   "PASSWORD_RESET_REQUESTED",
 ] as const;
 
@@ -30,7 +41,7 @@ const SECTORS = [
 const listQuerySchema = z.object({
   typeId: z.string().uuid().optional(),
   period: z.enum(["week", "month", "semester", "year"]).optional(),
-  action: z.enum(NON_EQUIPMENT_ACTIONS).optional(),
+  action: z.enum(AUDIT_ACTIONS).optional(),
   sector: z.enum(SECTORS).optional(),
 });
 
