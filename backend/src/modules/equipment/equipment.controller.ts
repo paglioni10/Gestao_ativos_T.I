@@ -20,6 +20,20 @@ const updateSchema = createSchema.partial().refine(
   { message: "Informe ao menos um campo para atualizar" }
 );
 
+const importSchema = z.object({
+  rows: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        type: z.string().optional(),
+        serialNumber: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .min(1, "A planilha está vazia")
+    .max(2000, "Limite de 2000 linhas por importação"),
+});
+
 const hardRemoveSchema = z.object({
   reason: z
     .string({ required_error: "Motivo da exclusão é obrigatório" })
@@ -82,5 +96,11 @@ export const equipmentController = {
     const { reason } = hardRemoveSchema.parse(req.body);
     await equipmentService.hardDelete(req.params.id, req.user!.sub, reason);
     return res.status(204).send();
+  },
+
+  async importMany(req: Request, res: Response) {
+    const { rows } = importSchema.parse(req.body);
+    const report = await equipmentService.importMany(rows, req.user!.sub);
+    return res.json(report);
   },
 };

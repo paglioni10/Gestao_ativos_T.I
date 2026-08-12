@@ -146,6 +146,70 @@ export const equipmentService = {
     return equipment;
   },
 
+  // Importa vários equipamentos de uma planilha (rejeição parcial): cada
+  // linha é validada e criada individualmente; as válidas entram, as
+  // inválidas voltam num relatório com o motivo. O "Tipo" vem por NOME e é
+  // casado com os tipos cadastrados (ignora acento/maiúscula).
+  async importMany(
+    rows: { name?: string; type?: string; serialNumber?: string; notes?: string }[],
+    performedById: string
+  ) {
+    const types = await prisma.equipmentType.findMany();
+    const norm = (s: string) =>
+      s
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    const typeByName = new Map(types.map((t) => [norm(t.name), t]));
+
+    let created = 0;
+    const errors: { line: number; message: string }[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const line = i + 2; // linha 1 = cabeçalho na planilha
+      const row = rows[i];
+      const name = (row.name ?? "").trim();
+      const typeName = (row.type ?? "").trim();
+
+      // Linha totalmente vazia é ignorada silenciosamente.
+      if (!name && !typeName && !(row.serialNumber ?? "").trim()) continue;
+
+      if (name.length < 2) {
+        errors.push({ line, message: "Nome deve ter no mínimo 2 caracteres" });
+        continue;
+      }
+      const type = typeByName.get(norm(typeName));
+      if (!type) {
+        errors.push({
+          line,
+          message: `Tipo "${typeName || "(vazio)"}" não está cadastrado`,
+        });
+        continue;
+      }
+
+      try {
+        await this.create(
+          {
+            name,
+            typeId: type.id,
+            serialNumber: row.serialNumber,
+            notes: row.notes,
+          },
+          performedById
+        );
+        created++;
+      } catch (err) {
+        errors.push({
+          line,
+          message: err instanceof AppError ? err.message : "Erro ao cadastrar",
+        });
+      }
+    }
+
+    return { created, errors, total: rows.length };
+  },
+
   // Atualiza os dados descritivos de um equipamento.
   async update(
     id: string,

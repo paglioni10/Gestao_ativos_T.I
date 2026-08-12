@@ -27,6 +27,14 @@ equipmentRoutes.get("/:id/qrcode", asyncHandler(equipmentController.qrCode));
 // POST /api/equipment        -> cria (apenas admin)
 equipmentRoutes.post("/", ensureAdmin, asyncHandler(equipmentController.create));
 
+// POST /api/equipment/import -> importa várias linhas de planilha (admin;
+// rejeição parcial, devolve relatório de erros por linha)
+equipmentRoutes.post(
+  "/import",
+  ensureAdmin,
+  asyncHandler(equipmentController.importMany)
+);
+
 // PUT  /api/equipment/:id    -> edita dados descritivos (apenas admin)
 equipmentRoutes.put("/:id", ensureAdmin, asyncHandler(equipmentController.update));
 

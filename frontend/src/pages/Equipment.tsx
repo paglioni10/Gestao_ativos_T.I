@@ -1,10 +1,11 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../components/Badge";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
 import { sortEquipmentTypes } from "../lib/equipmentTypes";
+import { downloadModel, parseSpreadsheet } from "../lib/equipmentImport";
 
 interface EquipmentType {
   id: string;
@@ -39,6 +40,15 @@ export function Equipment() {
   const [addingType, setAddingType] = useState(false);
   const [newType, setNewType] = useState("");
   const [newTypeSerialRequired, setNewTypeSerialRequired] = useState(true);
+
+  // Importação por planilha (.xlsx/.csv)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [importReport, setImportReport] = useState<{
+    created: number;
+    total: number;
+    errors: { line: number; message: string }[];
+  } | null>(null);
 
   async function load() {
     try {
@@ -119,6 +129,35 @@ export function Equipment() {
       await load();
     } catch (err: any) {
       setError(getErrorMessage(err, "Erro ao excluir equipamento"));
+    }
+  }
+
+  // Lê a planilha selecionada, envia as linhas e mostra o relatório.
+  async function handleImportFile(e: FormEvent<HTMLInputElement>) {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    setError("");
+    setImportReport(null);
+    setImporting(true);
+    try {
+      const rows = await parseSpreadsheet(file);
+      if (rows.length === 0) {
+        setError("A planilha está vazia ou não pôde ser lida.");
+        return;
+      }
+      const res = await api.post<{
+        created: number;
+        total: number;
+        errors: { line: number; message: string }[];
+      }>("/equipment/import", { rows });
+      setImportReport(res.data);
+      await load();
+    } catch (err: any) {
+      setError(getErrorMessage(err, "Erro ao importar planilha"));
+    } finally {
+      setImporting(false);
+      input.value = ""; // permite reimportar o mesmo arquivo
     }
   }
 
@@ -337,6 +376,72 @@ export function Equipment() {
             ))}
           </div>
         </form>
+      )}
+
+      {isAdmin && (
+        <div className="panel">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.csv"
+            style={{ display: "none" }}
+            onChange={handleImportFile}
+          />
+          <div
+            style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}
+          >
+            <strong style={{ fontSize: 14 }}>Importar em massa</strong>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              disabled={importing}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {importing ? "Importando..." : "Importar planilha (.xlsx/.csv)"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => downloadModel(types.map((t) => t.name))}
+            >
+              Baixar modelo
+            </button>
+            <span className="muted" style={{ fontSize: 12 }}>
+              Colunas: Nome, Tipo, Nº de série, Obs
+            </span>
+          </div>
+
+          {importReport && (
+            <div style={{ marginTop: 12 }}>
+              <p
+                className="alert-error"
+                style={{
+                  background: "var(--green-bg)",
+                  color: "var(--green-fg)",
+                  borderColor: "var(--green-fg)",
+                  marginBottom: importReport.errors.length ? 8 : 0,
+                }}
+              >
+                {importReport.created} de {importReport.total} equipamento(s)
+                importado(s) com sucesso.
+              </p>
+              {importReport.errors.length > 0 && (
+                <div className="alert-error">
+                  <strong>
+                    {importReport.errors.length} linha(s) não importada(s):
+                  </strong>
+                  <ul style={{ margin: "6px 0 0", paddingLeft: 20 }}>
+                    {importReport.errors.map((er) => (
+                      <li key={er.line}>
+                        Linha {er.line}: {er.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       <div className="field" style={{ maxWidth: 260, marginBottom: 16 }}>
