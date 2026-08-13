@@ -27,7 +27,7 @@ export const SECTOR_OPTIONS: { value: Sector; label: string }[] = [
   { value: "INSIDE_SALES", label: "Inside Sales" },
   { value: "MARKETING", label: "Marketing" },
   { value: "NAILS", label: "Nails" },
-  { value: "PRODUCAO_AB", label: "Produção AB" },
+  { value: "PRODUCAO_AB", label: "Produção" },
   { value: "PRODUCAO_NAILS", label: "Produção Nails" },
   { value: "RH", label: "RH" },
   { value: "TI", label: "T.I" },
