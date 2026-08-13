@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { findCol, normHeader, readSheetAoa } from "./spreadsheet";
 
 export interface ImportRow {
   name: string;
@@ -7,34 +8,12 @@ export interface ImportRow {
   notes: string;
 }
 
-// Normaliza texto de cabeçalho: minúsculo, sem acento, só letras/números.
-function normHeader(s: string): string {
-  return String(s)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
 
-// Acha o índice da coluna cujo cabeçalho casa com um dos apelidos.
-function findCol(headers: string[], aliases: string[]): number {
-  return headers.findIndex((h) => aliases.includes(h));
-}
 
 // Lê um arquivo .xlsx ou .csv e devolve as linhas mapeadas para os campos
 // esperados. O casamento é por cabeçalho (aceita variações de acento/caixa).
 export async function parseSpreadsheet(file: File): Promise<ImportRow[]> {
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  if (!ws) return [];
-
-  const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, {
-    header: 1,
-    blankrows: false,
-    defval: "",
-  });
+  const aoa = await readSheetAoa(file);
   if (aoa.length === 0) return [];
 
   const headers = (aoa[0] as unknown[]).map((h) => normHeader(String(h)));
