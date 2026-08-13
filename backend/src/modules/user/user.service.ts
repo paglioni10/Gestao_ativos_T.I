@@ -173,6 +173,10 @@ export const userService = {
         });
         continue;
       }
+      if (role === "ADMIN" && !email) {
+        errors.push({ line, message: "E-mail é obrigatório para administradores" });
+        continue;
+      }
       if (password.length < 6) {
         errors.push({ line, message: "Senha deve ter no mínimo 6 caracteres" });
         continue;

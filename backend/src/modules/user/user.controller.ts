@@ -35,6 +35,9 @@ const createSchema = z.object({
     ],
     { required_error: "Setor é obrigatório", invalid_type_error: "Setor inválido" }
   ),
+}).refine((data) => data.role !== "ADMIN" || !!data.email, {
+  message: "E-mail é obrigatório para administradores",
+  path: ["email"],
 });
 
 const resetPasswordSchema = z.object({

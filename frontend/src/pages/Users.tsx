@@ -170,7 +170,9 @@ export function Users() {
             />
           </div>
           <div className="field">
-            <label htmlFor="user-email">E-mail (opcional)</label>
+            <label htmlFor="user-email">
+              {form.role === "ADMIN" ? "E-mail" : "E-mail (opcional)"}
+            </label>
             <input
               id="user-email"
               name="novo-colaborador-email"
@@ -178,6 +180,7 @@ export function Users() {
               autoComplete="off"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required={form.role === "ADMIN"}
             />
           </div>
           <div className="field">
