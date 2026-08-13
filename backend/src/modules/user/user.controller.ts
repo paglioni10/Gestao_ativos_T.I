@@ -4,7 +4,12 @@ import { userService } from "./user.service.js";
 
 const createSchema = z.object({
   name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
-  email: z.string().email("E-mail inválido"),
+  // E-mail é opcional (colaborador que não loga pode não ter). Se informado,
+  // precisa ser válido. String vazia é tratada como "sem e-mail".
+  email: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : v),
+    z.string().email("E-mail inválido").optional()
+  ),
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
   role: z.enum(["ADMIN", "COLLABORATOR"]),
   jobTitle: z

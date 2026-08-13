@@ -35,7 +35,7 @@ export const authService = {
       data: { name, email, passwordHash, role: "COLLABORATOR" },
     });
 
-    return this.toAuthResponse(user.id, user.name, user.email, user.role);
+    return this.toAuthResponse(user.id, user.name, user.email ?? "", user.role);
   },
 
   // Valida credenciais e devolve um token JWT.
@@ -50,7 +50,7 @@ export const authService = {
       throw new AppError("Credenciais inválidas", 401);
     }
 
-    return this.toAuthResponse(user.id, user.name, user.email, user.role);
+    return this.toAuthResponse(user.id, user.name, user.email ?? "", user.role);
   },
 
   // Solicita redefinição de senha. Não há envio de e-mail configurado no

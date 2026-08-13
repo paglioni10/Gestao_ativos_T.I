@@ -11,7 +11,7 @@ import { downloadUserModel, parseUserSpreadsheet } from "../lib/userImport";
 interface User {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   role: "ADMIN" | "COLLABORATOR";
   jobTitle: string | null;
   sector: Sector | null;
@@ -170,7 +170,7 @@ export function Users() {
             />
           </div>
           <div className="field">
-            <label htmlFor="user-email">E-mail</label>
+            <label htmlFor="user-email">E-mail (opcional)</label>
             <input
               id="user-email"
               name="novo-colaborador-email"
@@ -178,7 +178,6 @@ export function Users() {
               autoComplete="off"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
             />
           </div>
           <div className="field">
@@ -356,7 +355,7 @@ export function Users() {
             {users.map((u) => (
               <tr key={u.id}>
                 <td>{u.name}</td>
-                <td>{u.email}</td>
+                <td>{u.email ?? "—"}</td>
                 <td>{u.jobTitle ?? "—"}</td>
                 <td>{u.sector ? SECTOR_LABEL[u.sector] : "—"}</td>
                 <td>

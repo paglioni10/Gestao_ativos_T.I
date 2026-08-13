@@ -6,7 +6,7 @@ import { prisma } from "../../lib/prisma.js";
 
 interface CreateUserInput {
   name: string;
-  email: string;
+  email?: string;
   password: string;
   role: Role;
   jobTitle: string;
@@ -37,14 +37,19 @@ export const userService = {
     { name, email, password, role, jobTitle, sector }: CreateUserInput,
     performedById: string
   ) {
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      throw new AppError("E-mail já cadastrado");
+    const cleanEmail = email?.trim() || null;
+    if (cleanEmail) {
+      const existing = await prisma.user.findUnique({
+        where: { email: cleanEmail },
+      });
+      if (existing) {
+        throw new AppError("E-mail já cadastrado");
+      }
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { name, email, passwordHash, role, jobTitle, sector },
+      data: { name, email: cleanEmail, passwordHash, role, jobTitle, sector },
       select: {
         id: true,
         name: true,
@@ -61,7 +66,7 @@ export const userService = {
       entity: "User",
       entityId: user.id,
       performedById,
-      metadata: { email, role, jobTitle, sector },
+      metadata: { email: cleanEmail, role, jobTitle, sector },
     });
     return user;
   },
@@ -144,7 +149,7 @@ export const userService = {
         errors.push({ line, message: "Nome deve ter no mínimo 2 caracteres" });
         continue;
       }
-      if (!emailRe.test(email)) {
+      if (email && !emailRe.test(email)) {
         errors.push({ line, message: "E-mail inválido" });
         continue;
       }
