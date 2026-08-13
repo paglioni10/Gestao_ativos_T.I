@@ -60,10 +60,21 @@ export async function parseSpreadsheet(file: File): Promise<ImportRow[]> {
     return {
       name: cell(row, idx.name),
       type: cell(row, idx.type),
-      serialNumber: cell(row, idx.serial),
+      serialNumber: padSerial(cell(row, idx.serial)),
       notes: cell(row, idx.notes),
     };
   });
+}
+
+// O Excel trata "0098" como o número 98 e perde os zeros à esquerda. Como os
+// nºs de série da empresa têm 4 dígitos, quando o valor é só dígitos e ficou
+// com menos de 4, completamos com zeros à esquerda. Valores maiores (ex.:
+// séries longas com letras) ficam intactos.
+function padSerial(value: string): string {
+  if (/^\d+$/.test(value) && value.length < 4) {
+    return value.padStart(4, "0");
+  }
+  return value;
 }
 
 // Gera e baixa uma planilha-modelo (.xlsx) com o cabeçalho esperado, uma
