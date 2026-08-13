@@ -369,24 +369,26 @@ export function Users() {
                   )}
                 </td>
                 <td>
-                  <button
-                    className="btn btn-sm"
-                    onClick={() => {
-                      setResettingId(u.id);
-                      setNewPassword("");
-                      setOk("");
-                    }}
-                  >
-                    Redefinir senha
-                  </button>
-                  {u.id !== currentUser?.id && (
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(u)}
+                      className="btn btn-sm"
+                      onClick={() => {
+                        setResettingId(u.id);
+                        setNewPassword("");
+                        setOk("");
+                      }}
                     >
-                      Excluir
+                      Redefinir senha
                     </button>
-                  )}
+                    {u.id !== currentUser?.id && (
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(u)}
+                      >
+                        Excluir
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
