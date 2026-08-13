@@ -6,7 +6,6 @@ export type Sector =
   | "RH"
   | "PRODUCAO_AB"
   | "FINANCEIRO"
-  | "FATURAMENTO"
   | "DIRETORIA"
   | "TRADE"
   | "EDUCACIONAL"
@@ -20,7 +19,6 @@ export const SECTOR_OPTIONS: { value: Sector; label: string }[] = [
   { value: "COMEX", label: "Comex" },
   { value: "DIRETORIA", label: "Diretoria" },
   { value: "EDUCACIONAL", label: "Educacional" },
-  { value: "FATURAMENTO", label: "Faturamento" },
   { value: "COMERCIAL", label: "Field Sales" },
   { value: "FINANCEIRO", label: "Financeiro" },
   { value: "FISCAL", label: "Fiscal" },

@@ -24,7 +24,6 @@ const createSchema = z.object({
       "RH",
       "PRODUCAO_AB",
       "FINANCEIRO",
-      "FATURAMENTO",
       "DIRETORIA",
       "TRADE",
       "EDUCACIONAL",

@@ -30,7 +30,6 @@ const SECTORS = [
   "RH",
   "PRODUCAO_AB",
   "FINANCEIRO",
-  "FATURAMENTO",
   "DIRETORIA",
   "TRADE",
   "EDUCACIONAL",

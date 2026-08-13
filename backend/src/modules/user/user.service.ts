@@ -101,7 +101,6 @@ export const userService = {
       { value: "COMEX", label: "Comex" },
       { value: "DIRETORIA", label: "Diretoria" },
       { value: "EDUCACIONAL", label: "Educacional" },
-      { value: "FATURAMENTO", label: "Faturamento" },
       { value: "FINANCEIRO", label: "Financeiro" },
       { value: "FISCAL", label: "Fiscal" },
       { value: "INSIDE_SALES", label: "Inside Sales" },
