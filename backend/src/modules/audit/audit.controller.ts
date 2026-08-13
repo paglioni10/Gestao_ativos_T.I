@@ -36,6 +36,8 @@ const SECTORS = [
   "EDUCACIONAL",
   "FISCAL",
   "PRODUCAO_NAILS",
+  "INSIDE_SALES",
+  "COMEX",
 ] as const;
 
 const listQuerySchema = z.object({

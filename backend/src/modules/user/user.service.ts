@@ -92,12 +92,14 @@ export const userService = {
     // Aceita tanto o valor do enum quanto o rótulo exibido no sistema.
     const sectorMap: Record<string, Sector> = {};
     const sectorLabels: { value: Sector; label: string }[] = [
-      { value: "COMERCIAL", label: "Comercial" },
+      { value: "COMERCIAL", label: "Field Sales" },
+      { value: "COMEX", label: "Comex" },
       { value: "DIRETORIA", label: "Diretoria" },
       { value: "EDUCACIONAL", label: "Educacional" },
       { value: "FATURAMENTO", label: "Faturamento" },
       { value: "FINANCEIRO", label: "Financeiro" },
       { value: "FISCAL", label: "Fiscal" },
+      { value: "INSIDE_SALES", label: "Inside Sales" },
       { value: "MARKETING", label: "Marketing" },
       { value: "NAILS", label: "Nails" },
       { value: "PRODUCAO_AB", label: "Produção AB" },

@@ -25,6 +25,8 @@ const createSchema = z.object({
       "EDUCACIONAL",
       "FISCAL",
       "PRODUCAO_NAILS",
+      "INSIDE_SALES",
+      "COMEX",
     ],
     { required_error: "Setor é obrigatório", invalid_type_error: "Setor inválido" }
   ),

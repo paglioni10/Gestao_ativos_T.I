@@ -11,16 +11,20 @@ export type Sector =
   | "TRADE"
   | "EDUCACIONAL"
   | "FISCAL"
-  | "PRODUCAO_NAILS";
+  | "PRODUCAO_NAILS"
+  | "INSIDE_SALES"
+  | "COMEX";
 
 // Ordem alfabética (pt-BR) dos rótulos.
 export const SECTOR_OPTIONS: { value: Sector; label: string }[] = [
-  { value: "COMERCIAL", label: "Comercial" },
+  { value: "COMEX", label: "Comex" },
   { value: "DIRETORIA", label: "Diretoria" },
   { value: "EDUCACIONAL", label: "Educacional" },
   { value: "FATURAMENTO", label: "Faturamento" },
+  { value: "COMERCIAL", label: "Field Sales" },
   { value: "FINANCEIRO", label: "Financeiro" },
   { value: "FISCAL", label: "Fiscal" },
+  { value: "INSIDE_SALES", label: "Inside Sales" },
   { value: "MARKETING", label: "Marketing" },
   { value: "NAILS", label: "Nails" },
   { value: "PRODUCAO_AB", label: "Produção AB" },
