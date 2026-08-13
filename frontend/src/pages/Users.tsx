@@ -30,6 +30,12 @@ const emptyForm = {
 export function Users() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+
+  // Filtros de pesquisa (client-side)
+  const [filterName, setFilterName] = useState("");
+  const [filterSector, setFilterSector] = useState<Sector | "">("");
+  const [filterRole, setFilterRole] = useState<"" | "ADMIN" | "COLLABORATOR">("");
+
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
@@ -51,6 +57,17 @@ export function Users() {
   useEffect(() => {
     load();
   }, []);
+
+  // Aplica os 3 filtros (nome contém, setor exato, papel exato).
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const filteredUsers = users.filter((u) => {
+    if (filterName && !normalize(u.name).includes(normalize(filterName)))
+      return false;
+    if (filterSector && u.sector !== filterSector) return false;
+    if (filterRole && u.role !== filterRole) return false;
+    return true;
+  });
 
   // Importação em massa por planilha (.xlsx/.csv)
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -342,6 +359,47 @@ export function Users() {
         </form>
       )}
 
+      <div className="form-row" style={{ marginBottom: 16 }}>
+        <div className="field" style={{ maxWidth: 280 }}>
+          <label htmlFor="filter-name">Buscar por nome</label>
+          <input
+            id="filter-name"
+            value={filterName}
+            onChange={(e) => setFilterName(e.target.value)}
+            placeholder="Digite o nome..."
+          />
+        </div>
+        <div className="field" style={{ maxWidth: 220 }}>
+          <label htmlFor="filter-sector">Setor</label>
+          <select
+            id="filter-sector"
+            value={filterSector}
+            onChange={(e) => setFilterSector(e.target.value as Sector | "")}
+          >
+            <option value="">Todos os setores</option>
+            {SECTOR_OPTIONS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ maxWidth: 200 }}>
+          <label htmlFor="filter-role">Papel</label>
+          <select
+            id="filter-role"
+            value={filterRole}
+            onChange={(e) =>
+              setFilterRole(e.target.value as "" | "ADMIN" | "COLLABORATOR")
+            }
+          >
+            <option value="">Todos os papéis</option>
+            <option value="ADMIN">Administrador</option>
+            <option value="COLLABORATOR">Colaborador</option>
+          </select>
+        </div>
+      </div>
+
       <div className="panel" style={{ padding: 0 }}>
         <table className="table">
           <thead>
@@ -355,7 +413,7 @@ export function Users() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {filteredUsers.map((u) => (
               <tr key={u.id}>
                 <td>{u.name}</td>
                 <td>{u.email ?? "—"}</td>
@@ -399,10 +457,12 @@ export function Users() {
                 </td>
               </tr>
             ) : (
-              users.length === 0 && (
+              filteredUsers.length === 0 && (
                 <tr>
                   <td colSpan={6} className="empty">
-                    Nenhum usuário cadastrado.
+                    {users.length === 0
+                      ? "Nenhum usuário cadastrado."
+                      : "Nenhum colaborador encontrado para os filtros."}
                   </td>
                 </tr>
               )
