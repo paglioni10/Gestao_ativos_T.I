@@ -36,6 +36,7 @@ export function Equipment() {
   // Filtro por tipo (separado do typeId do formulário de cadastro/edição)
   const [filterTypeId, setFilterTypeId] = useState("");
   const [filterSerial, setFilterSerial] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   // Cadastro de novo tipo
   const [addingType, setAddingType] = useState(false);
@@ -73,14 +74,18 @@ export function Equipment() {
     load();
   }, [filterTypeId]);
 
-  // Busca por nº de série (client-side, "contém", ignora maiúsc./minúsc.).
-  const filteredItems = filterSerial.trim()
-    ? items.filter((it) =>
-        (it.serialNumber ?? "")
-          .toLowerCase()
-          .includes(filterSerial.trim().toLowerCase())
-      )
-    : items;
+  // Filtros client-side: nº de série (contém) e status (exato).
+  const filteredItems = items.filter((it) => {
+    if (
+      filterSerial.trim() &&
+      !(it.serialNumber ?? "")
+        .toLowerCase()
+        .includes(filterSerial.trim().toLowerCase())
+    )
+      return false;
+    if (filterStatus && it.status !== filterStatus) return false;
+    return true;
+  });
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -479,6 +484,20 @@ export function Equipment() {
             placeholder="Digite o nº de série..."
           />
         </div>
+        <div className="field" style={{ maxWidth: 220 }}>
+          <label htmlFor="eq-filter-status">Status</label>
+          <select
+            id="eq-filter-status"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="">Todos os status</option>
+            <option value="AVAILABLE">Disponível</option>
+            <option value="ASSIGNED">Atribuído</option>
+            <option value="MAINTENANCE">Manutenção</option>
+            <option value="RETIRED">Baixado</option>
+          </select>
+        </div>
       </div>
 
       <div className="panel" style={{ padding: 0 }}>
@@ -538,8 +557,8 @@ export function Equipment() {
               filteredItems.length === 0 && (
                 <tr>
                   <td colSpan={isAdmin ? 5 : 4} className="empty">
-                    {filterSerial.trim()
-                      ? "Nenhum equipamento com este nº de série."
+                    {filterSerial.trim() || filterStatus
+                      ? "Nenhum equipamento para os filtros."
                       : filterTypeId
                       ? "Nenhum equipamento deste tipo."
                       : "Nenhum equipamento cadastrado ainda."}
