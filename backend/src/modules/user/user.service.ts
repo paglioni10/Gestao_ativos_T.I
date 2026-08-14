@@ -66,7 +66,7 @@ export const userService = {
       entity: "User",
       entityId: user.id,
       performedById,
-      metadata: { email: cleanEmail, role, jobTitle, sector },
+      metadata: { name, email: cleanEmail, role, jobTitle, sector },
     });
     return user;
   },

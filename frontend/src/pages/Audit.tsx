@@ -54,6 +54,16 @@ function actionLabel(log: AuditLog): string {
     const reason = log.metadata?.reason ? ` — motivo: ${log.metadata.reason}` : "";
     return `${name} excluído${reason}`;
   }
+  if (log.action === "USER_CREATED") {
+    const name = log.metadata?.name ? String(log.metadata.name) : null;
+    const email = log.metadata?.email ? String(log.metadata.email) : null;
+    const who = name ?? email;
+    return who ? `Usuário criado: ${who}` : "Usuário criado";
+  }
+  if (log.action === "USER_DELETED") {
+    const name = log.metadata?.name ? String(log.metadata.name) : null;
+    return name ? `Usuário excluído: ${name}` : "Usuário excluído";
+  }
   if (log.action === "EQUIPMENT_RELEASED_USER_DELETED") {
     const equipmentName = log.equipment?.name ?? String(log.metadata?.equipmentName ?? "Equipamento");
     const userName = String(log.metadata?.userName ?? "colaborador");
