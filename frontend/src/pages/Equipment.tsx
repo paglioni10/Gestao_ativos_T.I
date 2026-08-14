@@ -35,6 +35,7 @@ export function Equipment() {
 
   // Filtro por tipo (separado do typeId do formulário de cadastro/edição)
   const [filterTypeId, setFilterTypeId] = useState("");
+  const [filterSerial, setFilterSerial] = useState("");
 
   // Cadastro de novo tipo
   const [addingType, setAddingType] = useState(false);
@@ -71,6 +72,15 @@ export function Equipment() {
   useEffect(() => {
     load();
   }, [filterTypeId]);
+
+  // Busca por nº de série (client-side, "contém", ignora maiúsc./minúsc.).
+  const filteredItems = filterSerial.trim()
+    ? items.filter((it) =>
+        (it.serialNumber ?? "")
+          .toLowerCase()
+          .includes(filterSerial.trim().toLowerCase())
+      )
+    : items;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -444,20 +454,31 @@ export function Equipment() {
         </div>
       )}
 
-      <div className="field" style={{ maxWidth: 260, marginBottom: 16 }}>
-        <label htmlFor="eq-filter-type">Filtrar por tipo</label>
-        <select
-          id="eq-filter-type"
-          value={filterTypeId}
-          onChange={(e) => setFilterTypeId(e.target.value)}
-        >
-          <option value="">Todos os tipos</option>
-          {types.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
+      <div className="form-row" style={{ marginBottom: 16 }}>
+        <div className="field" style={{ maxWidth: 260 }}>
+          <label htmlFor="eq-filter-type">Filtrar por tipo</label>
+          <select
+            id="eq-filter-type"
+            value={filterTypeId}
+            onChange={(e) => setFilterTypeId(e.target.value)}
+          >
+            <option value="">Todos os tipos</option>
+            {types.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ maxWidth: 260 }}>
+          <label htmlFor="eq-filter-serial">Buscar por nº de série</label>
+          <input
+            id="eq-filter-serial"
+            value={filterSerial}
+            onChange={(e) => setFilterSerial(e.target.value)}
+            placeholder="Digite o nº de série..."
+          />
+        </div>
       </div>
 
       <div className="panel" style={{ padding: 0 }}>
@@ -472,7 +493,7 @@ export function Equipment() {
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <tr key={item.id}>
                 <td>
                   <Link to={`/equipamentos/${item.id}`}>{item.name}</Link>
@@ -514,10 +535,12 @@ export function Equipment() {
                 </td>
               </tr>
             ) : (
-              items.length === 0 && (
+              filteredItems.length === 0 && (
                 <tr>
                   <td colSpan={isAdmin ? 5 : 4} className="empty">
-                    {filterTypeId
+                    {filterSerial.trim()
+                      ? "Nenhum equipamento com este nº de série."
+                      : filterTypeId
                       ? "Nenhum equipamento deste tipo."
                       : "Nenhum equipamento cadastrado ainda."}
                   </td>
