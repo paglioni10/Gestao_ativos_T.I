@@ -15,7 +15,14 @@ export const assignmentService = {
     return prisma.assignment.findMany({
       orderBy: { assignedAt: "desc" },
       include: {
-        equipment: { select: { id: true, name: true, serialNumber: true } },
+        equipment: {
+          select: {
+            id: true,
+            name: true,
+            serialNumber: true,
+            type: { select: { id: true, name: true } },
+          },
+        },
         receiver: { select: { id: true, name: true } },
       },
     });

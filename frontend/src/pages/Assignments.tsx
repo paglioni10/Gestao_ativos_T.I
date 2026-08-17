@@ -12,7 +12,12 @@ interface Assignment {
   assignedAt: string;
   returnedAt: string | null;
   termPdfPath: string | null;
-  equipment: { id: string; name: string; serialNumber: string };
+  equipment: {
+    id: string;
+    name: string;
+    serialNumber: string;
+    type: { id: string; name: string };
+  };
   receiver: { id: string; name: string };
 }
 
@@ -47,6 +52,10 @@ export function Assignments() {
   const [equipmentIds, setEquipmentIds] = useState<string[]>([]);
   const [sectorFilter, setSectorFilter] = useState<Sector | "">("");
   const [receiverId, setReceiverId] = useState("");
+
+  // Filtros da LISTA de atribuições (tipo de equipamento + colaborador)
+  const [listTypeFilter, setListTypeFilter] = useState("");
+  const [listReceiver, setListReceiver] = useState("");
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -74,6 +83,23 @@ export function Assignments() {
   useEffect(() => {
     load();
   }, []);
+
+  // Filtros da lista: tipo de equipamento (exato) + colaborador (contém).
+  const filteredAssignments = assignments.filter((a) => {
+    if (listTypeFilter && a.equipment.type.id !== listTypeFilter) return false;
+    if (
+      listReceiver.trim() &&
+      !a.receiver.name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .includes(
+          listReceiver.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        )
+    )
+      return false;
+    return true;
+  });
 
   function toggleEquipment(id: string) {
     setEquipmentIds((prev) =>
@@ -251,6 +277,33 @@ export function Assignments() {
         </form>
       )}
 
+      <div className="form-row" style={{ marginBottom: 16 }}>
+        <div className="field" style={{ maxWidth: 240 }}>
+          <label htmlFor="list-type">Tipo de equipamento</label>
+          <select
+            id="list-type"
+            value={listTypeFilter}
+            onChange={(e) => setListTypeFilter(e.target.value)}
+          >
+            <option value="">Todos os tipos</option>
+            {equipTypes.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ maxWidth: 260 }}>
+          <label htmlFor="list-receiver">Buscar por colaborador</label>
+          <input
+            id="list-receiver"
+            value={listReceiver}
+            onChange={(e) => setListReceiver(e.target.value)}
+            placeholder="Digite o nome..."
+          />
+        </div>
+      </div>
+
       <div className="panel" style={{ padding: 0 }}>
         <table className="table">
           <thead>
@@ -264,7 +317,7 @@ export function Assignments() {
             </tr>
           </thead>
           <tbody>
-            {assignments.map((item) => (
+            {filteredAssignments.map((item) => (
               <tr key={item.id}>
                 <td>
                   {item.equipment.name}
@@ -306,10 +359,12 @@ export function Assignments() {
                 </td>
               </tr>
             ) : (
-              assignments.length === 0 && (
+              filteredAssignments.length === 0 && (
                 <tr>
                   <td colSpan={isAdmin ? 6 : 5} className="empty">
-                    Nenhuma atribuição registrada ainda.
+                    {assignments.length === 0
+                      ? "Nenhuma atribuição registrada ainda."
+                      : "Nenhuma atribuição para os filtros."}
                   </td>
                 </tr>
               )
