@@ -44,12 +44,17 @@ const listQuerySchema = z.object({
   period: z.enum(["week", "month", "semester", "year"]).optional(),
   action: z.enum(AUDIT_ACTIONS).optional(),
   sector: z.enum(SECTORS).optional(),
+  // Quantos registros retornar (paginação "carregar mais"). Limitado para
+  // proteger o servidor.
+  limit: z.coerce.number().int().min(1).max(5000).optional(),
 });
 
 export const auditController = {
   async list(req: Request, res: Response) {
-    const { typeId, period, action, sector } = listQuerySchema.parse(req.query);
-    const logs = await auditService.list(typeId, period, action, sector);
+    const { typeId, period, action, sector, limit } = listQuerySchema.parse(
+      req.query
+    );
+    const logs = await auditService.list(typeId, period, action, sector, limit);
     return res.json(logs);
   },
 };

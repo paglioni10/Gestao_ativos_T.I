@@ -112,6 +112,8 @@ export function Audit() {
   const [action, setAction] = useState("");
   const [sector, setSector] = useState<Sector | "">("");
   const [loading, setLoading] = useState(true);
+  // Paginação "carregar mais": começa em 100 e cresce de 100 em 100.
+  const [limit, setLimit] = useState(100);
 
   // Carrega os tipos uma vez (para o filtro).
   useEffect(() => {
@@ -120,19 +122,24 @@ export function Audit() {
       .then((res) => setTypes(sortEquipmentTypes(res.data)));
   }, []);
 
-  // Recarrega a trilha sempre que algum filtro muda.
+  // Ao trocar um filtro, volta a paginação para o começo.
   useEffect(() => {
-    const params: Record<string, string> = {};
+    setLimit(100);
+  }, [typeId, action, period, sector]);
+
+  // Recarrega a trilha quando um filtro muda ou ao pedir "carregar mais".
+  useEffect(() => {
+    const params: Record<string, string> = { limit: String(limit) };
     if (typeId) params.typeId = typeId;
     if (action) params.action = action;
     if (period) params.period = period;
     if (sector) params.sector = sector;
     setLoading(true);
     api
-      .get<AuditLog[]>("/audit", { params: Object.keys(params).length ? params : undefined })
+      .get<AuditLog[]>("/audit", { params })
       .then((res) => setLogs(res.data))
       .finally(() => setLoading(false));
-  }, [typeId, action, period, sector]);
+  }, [typeId, action, period, sector, limit]);
 
   return (
     <div>
@@ -270,6 +277,20 @@ export function Audit() {
           </tbody>
         </table>
       </div>
+
+      {/* "Carregar mais": aparece quando o retorno bateu o limite atual,
+          indicando que provavelmente há registros mais antigos. */}
+      {!loading && logs.length >= limit && (
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => setLimit((l) => l + 100)}
+          >
+            Carregar mais
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -31,7 +31,13 @@ export const auditService = {
   // - action: filtra por um tipo de ação específico (ex: criação de
   //   usuário), para eventos que não envolvem diretamente um equipamento.
   // - period: filtra por janela de tempo (semana/mês/semestre/ano atual).
-  async list(typeId?: string, period?: AuditPeriod, action?: string, sector?: Sector) {
+  async list(
+    typeId?: string,
+    period?: AuditPeriod,
+    action?: string,
+    sector?: Sector,
+    take = 100
+  ) {
     return prisma.auditLog.findMany({
       where: {
         ...(typeId ? { equipment: { typeId } } : {}),
@@ -40,7 +46,7 @@ export const auditService = {
         ...(sector ? { performedBy: { sector } } : {}),
       },
       orderBy: { createdAt: "desc" },
-      take: 100,
+      take,
       include: {
         performedBy: { select: { name: true, sector: true } },
         equipment: {
