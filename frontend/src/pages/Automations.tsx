@@ -76,7 +76,7 @@ export function Automations() {
         });
         setOk("Automação atualizada.");
       } else {
-        await api.post("/automations", form);
+        await api.post("/automations", { ...form, name: form.name || undefined });
         setOk("Automação criada.");
       }
       resetForm();

@@ -9,7 +9,11 @@ const createSchema = z.object({
     .int("O limite deve ser um número inteiro")
     .min(0, "O limite não pode ser negativo"),
   recipient: z.string().email("E-mail do destinatário inválido"),
-  name: z.string().min(2).optional(),
+  // Nome é opcional; string vazia vira "sem nome" (gerado automático).
+  name: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().min(2, "Nome deve ter no mínimo 2 caracteres").optional()
+  ),
   active: z.boolean().optional(),
 });
 
@@ -17,7 +21,10 @@ const updateSchema = z
   .object({
     threshold: z.coerce.number().int().min(0).optional(),
     recipient: z.string().email("E-mail do destinatário inválido").optional(),
-    name: z.string().min(2).optional(),
+    name: z.preprocess(
+      (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+      z.string().min(2, "Nome deve ter no mínimo 2 caracteres").optional()
+    ),
     active: z.boolean().optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {
