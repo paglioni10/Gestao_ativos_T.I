@@ -107,6 +107,19 @@ export function Automations() {
     }
   }
 
+  async function sendTest(a: Automation) {
+    setError("");
+    setOk("");
+    try {
+      const res = await api.post<{ sent: boolean; recipient: string }>(
+        `/automations/${a.id}/test-email`
+      );
+      setOk(`E-mail de teste enviado para ${res.data.recipient}.`);
+    } catch (err: any) {
+      setError(getErrorMessage(err, "Erro ao enviar e-mail de teste"));
+    }
+  }
+
   async function handleDelete(a: Automation) {
     if (!confirm(`Excluir a automação "${a.name}"?`)) return;
     setError("");
@@ -262,6 +275,9 @@ export function Automations() {
                     </button>
                     <button className="btn btn-sm" onClick={() => toggleActive(a)}>
                       {a.active ? "Desativar" : "Ativar"}
+                    </button>
+                    <button className="btn btn-sm" onClick={() => sendTest(a)}>
+                      Testar e-mail
                     </button>
                     <button
                       className="btn btn-sm btn-danger"

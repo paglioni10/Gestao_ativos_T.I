@@ -50,4 +50,9 @@ export const automationController = {
     await automationService.remove(req.params.id, req.user!.sub);
     return res.status(204).send();
   },
+
+  async sendTest(req: Request, res: Response) {
+    const result = await automationService.sendTest(req.params.id);
+    return res.json(result);
+  },
 };

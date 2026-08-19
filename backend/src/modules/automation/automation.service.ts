@@ -1,6 +1,6 @@
 import { AppError } from "../../lib/AppError.js";
 import { recordAudit } from "../../lib/audit.js";
-import { sendMail } from "../../lib/mailer.js";
+import { isMailConfigured, sendMail } from "../../lib/mailer.js";
 import { prisma } from "../../lib/prisma.js";
 import { env } from "../../config/env.js";
 
@@ -110,6 +110,34 @@ export const automationService = {
       metadata: { changes: data },
     });
     return automation;
+  },
+
+  // Envia um e-mail de teste para o destinatário da automação — serve para
+  // validar a configuração SMTP sem precisar mexer no estoque real.
+  async sendTest(id: string): Promise<{ sent: boolean; recipient: string }> {
+    const automation = await prisma.automation.findUnique({
+      where: { id },
+      include: { equipmentType: { select: { name: true } } },
+    });
+    if (!automation) {
+      throw new AppError("Automação não encontrada", 404);
+    }
+    if (!isMailConfigured()) {
+      throw new AppError(
+        "SMTP não configurado no servidor. Defina as variáveis SMTP_* para enviar e-mails.",
+        400
+      );
+    }
+    const { sent } = await sendMail({
+      to: automation.recipient,
+      subject: `Teste de automação — ${automation.name}`,
+      html: `
+        <p>Este é um <strong>e-mail de teste</strong> da automação "${automation.name}".</p>
+        <p>Se você recebeu esta mensagem, o envio de e-mail está funcionando.</p>
+        <p style="color:#888;font-size:12px">T.I STORAGE (American Burrs)</p>
+      `,
+    });
+    return { sent, recipient: automation.recipient };
   },
 
   async remove(id: string, performedById: string) {
