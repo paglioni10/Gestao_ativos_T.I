@@ -269,7 +269,7 @@ export function Automations() {
                     : "—"}
                 </td>
                 <td>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <div className="action-grid">
                     <button className="btn btn-sm" onClick={() => handleEdit(a)}>
                       Editar
                     </button>

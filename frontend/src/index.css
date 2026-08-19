@@ -657,3 +657,18 @@ code {
 .stat-expand-row:hover {
   background: var(--surface);
 }
+
+/* ---- Grade de ações da tabela (Automações): 2x2 com colunas iguais ---- */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(96px, 1fr));
+  gap: 6px;
+  min-width: 208px;
+}
+.action-grid .btn {
+  width: 100%;
+  text-align: center;
+}
+.action-grid .btn + .btn {
+  margin-left: 0; /* a grade já cuida do espaçamento (gap) */
+}
