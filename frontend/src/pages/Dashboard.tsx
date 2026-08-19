@@ -1,19 +1,36 @@
 import { ReactNode, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
+
+interface EquipmentRef {
+  id: string;
+  name: string;
+  type: string;
+  serialNumber: string | null;
+  scheduledFor: string;
+  daysLate?: number;
+}
 
 interface Summary {
   equipmentByStatus: Record<string, number>;
   activeAssignments: number;
   upcomingMaintenance: number;
   overdueMaintenance: number;
+  maintenanceEquipment: EquipmentRef[];
+  overdueEquipment: EquipmentRef[];
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("pt-BR");
 }
 
 // Tela inicial com os números-resumo vindos de /dashboard/summary.
 export function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [expanded, setExpanded] = useState<"maintenance" | "overdue" | null>(null);
 
   useEffect(() => {
     api
@@ -72,7 +89,7 @@ export function Dashboard() {
 
       <div
         className="stat-grid"
-        style={{ marginTop: 16, gridTemplateColumns: "repeat(2, 1fr)" }}
+        style={{ marginTop: 16, gridTemplateColumns: "repeat(2, 1fr)", alignItems: "start" }}
       >
         <Stat
           icon="🔧"
@@ -80,7 +97,28 @@ export function Dashboard() {
           value={maintenance}
           label="Em manutenção"
           detail={`${summary.upcomingMaintenance} manutenção(ões) agendada(s)`}
-        />
+          expandable
+          expanded={expanded === "maintenance"}
+          onToggle={() => setExpanded((e) => (e === "maintenance" ? null : "maintenance"))}
+        >
+          {summary.maintenanceEquipment.length === 0 ? (
+            <p className="muted" style={{ padding: "8px 12px" }}>Nenhum equipamento em manutenção agendada.</p>
+          ) : (
+            summary.maintenanceEquipment.map((it) => (
+              <div key={it.id} className="stat-expand-row">
+                <div style={{ minWidth: 0 }}>
+                  <Link to={`/equipamentos/${it.id}`} style={{ fontWeight: 600, fontSize: 14 }}>
+                    {it.name}
+                  </Link>
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    {it.type} · SN {it.serialNumber || "—"} · agendada para {formatDate(it.scheduledFor)}
+                  </div>
+                </div>
+                <span className="badge badge-amber">Manutenção</span>
+              </div>
+            ))
+          )}
+        </Stat>
         <Stat
           icon="⚠️"
           tone="red"
@@ -88,7 +126,28 @@ export function Dashboard() {
           label="Manutenções atrasadas"
           detail="requerem atenção imediata"
           alert={summary.overdueMaintenance > 0}
-        />
+          expandable
+          expanded={expanded === "overdue"}
+          onToggle={() => setExpanded((e) => (e === "overdue" ? null : "overdue"))}
+        >
+          {summary.overdueEquipment.length === 0 ? (
+            <p className="muted" style={{ padding: "8px 12px" }}>Nenhuma manutenção atrasada.</p>
+          ) : (
+            summary.overdueEquipment.map((it) => (
+              <div key={it.id} className="stat-expand-row">
+                <div style={{ minWidth: 0 }}>
+                  <Link to={`/equipamentos/${it.id}`} style={{ fontWeight: 600, fontSize: 14 }}>
+                    {it.name}
+                  </Link>
+                  <div style={{ fontSize: 12, color: "var(--red-fg)", fontWeight: 600 }}>
+                    {it.type} · SN {it.serialNumber || "—"} · atrasada há {it.daysLate} dia(s)
+                  </div>
+                </div>
+                <span className="badge badge-red">Atrasado</span>
+              </div>
+            ))
+          )}
+        </Stat>
       </div>
     </div>
   );
@@ -101,6 +160,10 @@ function Stat({
   detail,
   tone = "gray",
   alert = false,
+  expandable = false,
+  expanded = false,
+  onToggle,
+  children,
 }: {
   icon: ReactNode;
   value: number;
@@ -108,15 +171,44 @@ function Stat({
   detail?: string;
   tone?: string;
   alert?: boolean;
+  expandable?: boolean;
+  expanded?: boolean;
+  onToggle?: () => void;
+  children?: ReactNode;
 }) {
-  return (
-    <div className={`stat-card${alert ? " alert" : ""}`}>
-      <div className={`stat-icon tone-${tone}`} aria-hidden="true">
-        {icon}
+  const header = (
+    <>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div className={`stat-icon tone-${tone}`} aria-hidden="true">
+          {icon}
+        </div>
+        {expandable && (
+          <span className={`stat-chevron${expanded ? " open" : ""}`} aria-hidden="true">
+            ⌄
+          </span>
+        )}
       </div>
       <div className="stat-value">{value}</div>
       <div className="stat-label">{label}</div>
       {detail && <div className="stat-detail">{detail}</div>}
+    </>
+  );
+
+  if (!expandable) {
+    return <div className={`stat-card${alert ? " alert" : ""}`}>{header}</div>;
+  }
+
+  return (
+    <div className={`stat-card stat-card-expandable${alert ? " alert" : ""}`}>
+      <button
+        type="button"
+        className="stat-card-trigger"
+        onClick={onToggle}
+        aria-expanded={expanded}
+      >
+        {header}
+      </button>
+      {expanded && <div className="stat-expand-panel">{children}</div>}
     </div>
   );
 }

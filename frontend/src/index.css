@@ -617,3 +617,43 @@ code {
   display: flex;
   justify-content: center;
 }
+
+/* ---- Cartões de estatística expansíveis (mostram os equipamentos por trás do número) ---- */
+.stat-card-expandable {
+  padding: 0;
+  overflow: hidden;
+}
+.stat-card-trigger {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  cursor: pointer;
+  padding: 20px;
+}
+.stat-chevron {
+  color: var(--muted);
+  font-size: 16px;
+  transition: transform 0.18s ease;
+}
+.stat-chevron.open {
+  transform: rotate(180deg);
+}
+.stat-expand-panel {
+  border-top: 1px solid var(--border);
+  background: var(--hover-bg);
+  padding: 8px 8px 12px;
+}
+.stat-expand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+.stat-expand-row:hover {
+  background: var(--surface);
+}

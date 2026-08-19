@@ -1,8 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 
 export const dashboardService = {
-  // Métricas-resumo para a tela inicial. Mostra que o sistema é uma
-  // ferramenta de GESTÃO, não só um cadastro.
   async summary() {
     const now = new Date();
 
@@ -11,25 +9,38 @@ export const dashboardService = {
       activeAssignments,
       upcomingMaintenance,
       overdueMaintenance,
+      maintenanceEquipment,
+      overdueEquipment,
     ] = await Promise.all([
-      // Contagem de equipamentos agrupada por status.
       prisma.equipment.groupBy({
         by: ["status"],
         _count: { _all: true },
       }),
-      // Equipamentos atualmente em poder de alguém.
       prisma.assignment.count({ where: { status: "ACTIVE" } }),
-      // Manutenções programadas e ainda não concluídas (futuras).
       prisma.maintenanceRecord.count({
         where: { completedAt: null, scheduledFor: { gte: now } },
       }),
-      // Manutenções não concluídas cujo prazo já passou (alerta!).
       prisma.maintenanceRecord.count({
         where: { completedAt: null, scheduledFor: { lt: now } },
       }),
+      // Equipamentos com manutenção agendada (ainda não atrasada) — para a lista da caixa "Em manutenção".
+      prisma.maintenanceRecord.findMany({
+        where: { completedAt: null, scheduledFor: { gte: now } },
+        orderBy: { scheduledFor: "asc" },
+        include: {
+          equipment: { select: { id: true, name: true, serialNumber: true, type: { select: { name: true } } } },
+        },
+      }),
+      // Equipamentos com manutenção atrasada — para a lista da caixa "Manutenções atrasadas".
+      prisma.maintenanceRecord.findMany({
+        where: { completedAt: null, scheduledFor: { lt: now } },
+        orderBy: { scheduledFor: "asc" },
+        include: {
+          equipment: { select: { id: true, name: true, serialNumber: true, type: { select: { name: true } } } },
+        },
+      }),
     ]);
 
-    // Transforma o groupBy em um objeto { AVAILABLE: n, ASSIGNED: n, ... }
     const equipmentByStatus = Object.fromEntries(
       byStatus.map((row) => [row.status, row._count._all])
     );
@@ -39,6 +50,21 @@ export const dashboardService = {
       activeAssignments,
       upcomingMaintenance,
       overdueMaintenance,
+      maintenanceEquipment: maintenanceEquipment.map((m) => ({
+        id: m.equipment.id,
+        name: m.equipment.name,
+        type: m.equipment.type.name,
+        serialNumber: m.equipment.serialNumber,
+        scheduledFor: m.scheduledFor,
+      })),
+      overdueEquipment: overdueEquipment.map((m) => ({
+        id: m.equipment.id,
+        name: m.equipment.name,
+        type: m.equipment.type.name,
+        serialNumber: m.equipment.serialNumber,
+        scheduledFor: m.scheduledFor,
+        daysLate: Math.max(1, Math.floor((now.getTime() - m.scheduledFor.getTime()) / 86400000)),
+      })),
     };
   },
 };
