@@ -2,6 +2,7 @@ import { AppError } from "../../lib/AppError.js";
 import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
 import { generateTermPdf } from "../../lib/term.js";
+import { automationService } from "../automation/automation.service.js";
 
 interface CreateAssignmentInput {
   equipmentId: string;
@@ -95,6 +96,9 @@ export const assignmentService = {
       performedById: createdById,
       metadata: { equipmentId, receiverId },
     });
+
+    // Estoque desse tipo diminuiu (ficou ASSIGNED): reavalia automações.
+    await automationService.evaluateForType(equipment.typeId);
     return updated;
   },
 
@@ -130,6 +134,14 @@ export const assignmentService = {
       equipmentId: assignment.equipmentId,
       performedById,
     });
+
+    // Estoque desse tipo aumentou (voltou AVAILABLE): reavalia automações
+    // (pode rearmar o alerta se subiu acima do limite).
+    const eq = await prisma.equipment.findUnique({
+      where: { id: assignment.equipmentId },
+      select: { typeId: true },
+    });
+    if (eq) await automationService.evaluateForType(eq.typeId);
     return updated;
   },
 

@@ -40,6 +40,10 @@ const ACTIONS: Record<string, { label: string; tone: string }> = {
   REQUEST_APPROVED: { label: "Acesso a senha aprovado", tone: "green" },
   REQUEST_DENIED: { label: "Acesso a senha negado", tone: "red" },
   USER_DELETED: { label: "Usuário excluído", tone: "gray" },
+  AUTOMATION_CREATED: { label: "Automação criada", tone: "blue" },
+  AUTOMATION_UPDATED: { label: "Automação editada", tone: "blue" },
+  AUTOMATION_DELETED: { label: "Automação excluída", tone: "gray" },
+  AUTOMATION_TRIGGERED: { label: "Automação disparada (estoque baixo)", tone: "amber" },
   EQUIPMENT_RELEASED_USER_DELETED: {
     label: "Equipamento liberado (funcionário excluído)",
     tone: "amber",
@@ -102,6 +106,10 @@ const ACTION_FILTERS: { value: string; label: string }[] = [
   { value: "USER_DELETED", label: "Usuário excluído" },
   { value: "USER_PASSWORD_RESET", label: "Senha redefinida pelo admin" },
   { value: "PASSWORD_RESET_REQUESTED", label: "Pedido de redefinição de senha" },
+  { value: "AUTOMATION_CREATED", label: "Automação criada" },
+  { value: "AUTOMATION_UPDATED", label: "Automação editada" },
+  { value: "AUTOMATION_DELETED", label: "Automação excluída" },
+  { value: "AUTOMATION_TRIGGERED", label: "Automação disparada (estoque baixo)" },
 ];
 
 export function Audit() {

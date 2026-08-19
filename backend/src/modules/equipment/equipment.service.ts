@@ -4,6 +4,7 @@ import { env } from "../../config/env.js";
 import { AppError } from "../../lib/AppError.js";
 import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
+import { automationService } from "../automation/automation.service.js";
 
 interface CreateEquipmentInput {
   name: string;
@@ -143,6 +144,10 @@ export const equipmentService = {
       performedById,
       metadata: { name: equipment.name, serialNumber: equipment.serialNumber },
     });
+
+    // Novo equipamento AVAILABLE aumenta o estoque do tipo: reavalia (pode
+    // rearmar um alerta de estoque baixo).
+    await automationService.evaluateForType(equipment.typeId);
     return equipment;
   },
 
@@ -285,6 +290,9 @@ export const equipmentService = {
       equipmentId: id,
       performedById,
     });
+
+    // Baixa reduz o estoque disponível do tipo: reavalia automações.
+    await automationService.evaluateForType(equipment.typeId);
     return updated;
   },
 
@@ -324,5 +332,8 @@ export const equipmentService = {
         reason,
       },
     });
+
+    // Exclusão pode ter reduzido o estoque disponível do tipo: reavalia.
+    await automationService.evaluateForType(equipment.typeId);
   },
 };

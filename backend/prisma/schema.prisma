@@ -100,6 +100,38 @@ model EquipmentType {
   serialRequired Boolean @default(true)
   createdAt DateTime    @default(now())
   equipments Equipment[]
+  automations Automation[]
+}
+
+// ---------------------------------------------------------------------------
+// Automações: regras configuráveis que reagem a eventos do sistema. Por ora
+// há um tipo (LOW_STOCK): avisar por e-mail quando os disponíveis de um tipo
+// de equipamento chegam a um limite. Uma automação por tipo (várias linhas).
+// ---------------------------------------------------------------------------
+model Automation {
+  id              String            @id @default(uuid())
+  type            AutomationType    @default(LOW_STOCK)
+  name            String
+  equipmentType   EquipmentType     @relation(fields: [equipmentTypeId], references: [id])
+  equipmentTypeId String
+  threshold       Int // limite N: alerta quando disponíveis <= N
+  channel         AutomationChannel @default(EMAIL)
+  recipient       String // e-mail que deve receber o aviso
+  active          Boolean           @default(true)
+  // "Já avisei": garante o disparo só na VIRADA (>N -> <=N). Reseta quando o
+  // estoque volta a subir acima do limite.
+  alreadyAlerted  Boolean           @default(false)
+  lastTriggeredAt DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+enum AutomationType {
+  LOW_STOCK
+}
+
+enum AutomationChannel {
+  EMAIL
 }
 
 enum EquipmentStatus {

@@ -33,6 +33,10 @@ export const equipmentTypeService = {
         `Não é possível excluir: existem ${inUse} equipamento(s) cadastrado(s) com o tipo "${type.name}".`
       );
     }
-    await prisma.equipmentType.delete({ where: { id } });
+    // Automações são configuração ligada ao tipo — removidas junto com ele.
+    await prisma.$transaction([
+      prisma.automation.deleteMany({ where: { equipmentTypeId: id } }),
+      prisma.equipmentType.delete({ where: { id } }),
+    ]);
   },
 };

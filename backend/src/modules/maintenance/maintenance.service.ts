@@ -1,6 +1,7 @@
 import { AppError } from "../../lib/AppError.js";
 import { recordAudit } from "../../lib/audit.js";
 import { prisma } from "../../lib/prisma.js";
+import { automationService } from "../automation/automation.service.js";
 
 interface CreateMaintenanceInput {
   equipmentId: string;
@@ -59,6 +60,9 @@ export const maintenanceService = {
       performedById,
       metadata: { maintenanceId: record.id, description },
     });
+
+    // Equipamento saiu de AVAILABLE (foi p/ MAINTENANCE): reavalia automações.
+    await automationService.evaluateForType(equipment.typeId);
     return record;
   },
 
@@ -92,6 +96,13 @@ export const maintenanceService = {
       performedById,
       metadata: { maintenanceId: id },
     });
+
+    // Equipamento voltou a AVAILABLE: reavalia automações (pode rearmar).
+    const eq = await prisma.equipment.findUnique({
+      where: { id: record.equipmentId },
+      select: { typeId: true },
+    });
+    if (eq) await automationService.evaluateForType(eq.typeId);
     return updated;
   },
 };

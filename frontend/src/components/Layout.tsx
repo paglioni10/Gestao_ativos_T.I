@@ -32,6 +32,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <NavLink to="/solicitacoes">Solicitações</NavLink>
                 <NavLink to="/colaboradores">Colaboradores</NavLink>
                 <NavLink to="/auditoria">Auditoria</NavLink>
+                <NavLink to="/automacoes">Automações</NavLink>
               </>
             )}
           </nav>

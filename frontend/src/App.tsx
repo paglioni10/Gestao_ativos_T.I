@@ -5,6 +5,7 @@ import { TopProgressBar } from "./components/TopProgressBar";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Assignments } from "./pages/Assignments";
 import { Audit } from "./pages/Audit";
+import { Automations } from "./pages/Automations";
 import { Dashboard } from "./pages/Dashboard";
 import { Equipment } from "./pages/Equipment";
 import { EquipmentDetail } from "./pages/EquipmentDetail";
@@ -35,6 +36,7 @@ export function App() {
             {/* Áreas restritas a administradores (governança). */}
             <Route element={<RequireAdmin />}>
               <Route path="/auditoria" element={<Audit />} />
+              <Route path="/automacoes" element={<Automations />} />
               <Route path="/colaboradores" element={<Users />} />
               <Route path="/solicitacoes" element={<Requests />} />
             </Route>

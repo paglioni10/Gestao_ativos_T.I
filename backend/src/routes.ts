@@ -9,6 +9,7 @@ import { maintenanceRoutes } from "./modules/maintenance/maintenance.routes.js";
 import { credentialRoutes } from "./modules/credential/credential.routes.js";
 import { equipmentTypeRoutes } from "./modules/equipmentType/equipmentType.routes.js";
 import { passwordResetRequestRoutes } from "./modules/passwordResetRequest/passwordResetRequest.routes.js";
+import { automationRoutes } from "./modules/automation/automation.routes.js";
 
 // Agregador central de rotas. Cada módulo registra seu próprio prefixo.
 export const router = Router();
@@ -23,3 +24,4 @@ router.use("/audit", auditRoutes);
 router.use("/maintenances", maintenanceRoutes);
 router.use("/credentials", credentialRoutes);
 router.use("/password-reset-requests", passwordResetRequestRoutes);
+router.use("/automations", automationRoutes);
