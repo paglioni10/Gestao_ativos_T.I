@@ -2,38 +2,74 @@
 
 **Gestão de Ativos de TI** — sistema para controlar a entrega, devolução e
 responsabilidade sobre equipamentos corporativos (notebooks, celulares,
-monitores, ferramentas).
+monitores, periféricos e afins).
 
 > **A dor que resolve:** na maioria das empresas ninguém sabe ao certo quem
 > está com qual equipamento. Este sistema centraliza o controle, registra um
-> termo de responsabilidade digital por entrega e mantém uma trilha de
-> auditoria imutável de quem fez o quê.
+> termo de responsabilidade por entrega e mantém uma trilha de auditoria
+> imutável de quem fez o quê.
+
+## 📖 Do portfólio para o uso real
+
+Este projeto **nasceu como um projeto de portfólio**, para demonstrar a
+construção de um sistema full-stack de gestão de ativos.
+
+Depois da primeira versão, a **[American Burrs](https://americanburrs.com)** —
+empresa onde atuo — **se interessou em usá-lo internamente**. A partir daí o
+T.I STORAGE **deixou de ser um projeto de portfólio e passou a ser uma
+ferramenta interna de verdade**, usada pela equipe de T.I no dia a dia.
+
+Essa mudança de contexto guiou a evolução recente do sistema:
+
+- Adoção da **identidade visual da American Burrs** (paleta, tipografia Montserrat, logotipo).
+- Ajustes voltados à operação real: setores da empresa, cadastro em massa por
+  planilha, regras de nº de série por tipo de equipamento, filtros de busca,
+  ficha pública via QR Code e **automações** (ex.: alerta de estoque baixo por e-mail).
+- Planejamento de **migração da infraestrutura** para os serviços e domínios
+  próprios da empresa (EasyPanel).
 
 ## 🚀 Acesse
 
 - **App ao vivo:** https://gestao-ativos-t-i.vercel.app
-- **Login de demonstração:** `admin@empresa.com` / `admin123`
 
-<!-- Dica: adicione aqui um print da Visão geral e/ou um GIF do fluxo de entrega. -->
+> O acesso é restrito à equipe de T.I da empresa — não há credenciais públicas
+> de demonstração. Para rodar localmente, veja **[Como rodar](#-como-rodar)**
+> (o seed cria um administrador padrão de desenvolvimento).
 
 ## ✨ Funcionalidades
 
-- 🔐 Autenticação com papéis (Admin / Colaborador) via JWT
+**Ativos e ciclo de vida**
 - 💻 Cadastro de equipamentos com status (disponível, atribuído, manutenção, baixado)
-- 🤝 Registro de entrega e devolução com histórico por colaborador
-- 📝 Termo de responsabilidade digital + trilha de auditoria
-- 📊 Dashboard com métricas de gestão
-- 🔧 Alertas de manutenção
-- 📱 QR Code para identificação dos equipamentos
+- 🏷️ Tipos de equipamento cadastráveis, com **regra de nº de série por tipo** (obrigatório ou não)
+- 🤝 Registro de **entrega e devolução** transacional, com histórico por colaborador
+- 📝 **Termo de responsabilidade** em PDF gerado a cada entrega
+- 🗑️ Baixa lógica (preserva histórico) e exclusão definitiva com motivo auditado
+- 📥 **Importação em massa** de equipamentos e colaboradores via planilha `.xlsx`/`.csv` (rejeição parcial com relatório)
+
+**Governança e visibilidade**
+- 🔐 Autenticação com papéis (Admin / Colaborador) via JWT
+- 🏢 Colaboradores com **setor** e **cargo**; filtros de busca por nome, setor e papel
+- 📊 Dashboard com métricas; cards de manutenção **expansíveis** mostrando os equipamentos
+- 📜 **Trilha de auditoria** imutável, com filtros (data, equipamento, ação, setor) e paginação
+- 🔧 Agendamento e alerta de manutenções
+- 🔑 **Cofre de senhas** dos aparelhos com criptografia AES-256-GCM (distinta do hash de login)
+
+**Identificação e automação**
+- 📱 **QR Code** por equipamento que abre uma **ficha pública** read-only (sem login)
+- ⚙️ **Automações** configuráveis — ex.: avisar por e-mail (Outlook/SMTP) quando o
+  estoque de um tipo chega a um limite, disparando apenas na virada
 
 ## 🛠️ Stack
 
-| Camada   | Tecnologias                                   |
-| -------- | --------------------------------------------- |
-| Frontend | React, TypeScript, Vite, React Router         |
-| Backend  | Node.js, Express, TypeScript                  |
-| Banco    | PostgreSQL + Prisma ORM                        |
-| Auth     | JWT + bcrypt                                   |
+| Camada     | Tecnologias                                             |
+| ---------- | ------------------------------------------------------- |
+| Frontend   | React, TypeScript, Vite, React Router                   |
+| Backend    | Node.js, Express, TypeScript                            |
+| Banco      | PostgreSQL + Prisma ORM                                 |
+| Auth       | JWT + bcrypt                                            |
+| E-mail     | Nodemailer (SMTP / Outlook 365)                         |
+| Documentos | pdfkit (termos), qrcode (etiquetas), SheetJS (planilhas)|
+| Identidade | Paleta e tipografia da marca American Burrs             |
 
 ## 🏗️ Arquitetura
 
@@ -46,6 +82,14 @@ backend/src/modules/<recurso>/
   ├── *.controller.ts  → valida a entrada (zod) e monta a resposta
   └── *.service.ts     → regra de negócio e acesso ao banco (Prisma)
 ```
+
+Decisões de projeto que valem destacar:
+- **Baixa lógica** em vez de `DELETE` onde há histórico (equipamentos e usuários),
+  para nunca quebrar a trilha de auditoria e as atribuições passadas.
+- **Transações** (`prisma.$transaction`) em toda operação com múltiplas escritas
+  (entrega, devolução, exclusões em cascata).
+- **Criptografia separada por finalidade:** bcrypt para senha de login; AES-256-GCM
+  reversível para o cofre de senhas dos aparelhos.
 
 ## 🚀 Como rodar
 
@@ -60,7 +104,7 @@ cd backend
 cp .env.example .env
 npm install
 npm run prisma:migrate    # cria as tabelas
-npm run seed              # cria o admin (admin@empresa.com / admin123)
+npm run seed              # cria o admin padrão de desenvolvimento
 npm run dev               # API em http://localhost:3333
 
 # 3. Frontend (em outro terminal)
@@ -70,22 +114,37 @@ npm install
 npm run dev               # app em http://localhost:5173
 ```
 
+### Variáveis de ambiente (backend)
+
+Essenciais: `DATABASE_URL`, `JWT_SECRET`, `CREDENTIALS_KEY`, `CORS_ORIGIN`.
+
+Opcionais (automações de e-mail — se ausentes, o envio é ignorado sem quebrar):
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
+
 ## 📂 Estrutura
 
 ```
-transformacao_digital/
+gestao_ti/
 ├── docker-compose.yml     # PostgreSQL local
 ├── backend/               # API REST
-│   ├── prisma/            # schema do banco + seed
+│   ├── prisma/            # schema do banco + migrations + seed
 │   └── src/
 │       ├── config/        # variáveis de ambiente
-│       ├── lib/           # prisma client, helpers, AppError
+│       ├── lib/           # prisma client, mailer, auditoria, PDF, cripto
 │       ├── middlewares/   # auth, tratamento de erros
-│       └── modules/       # auth, user, equipment, assignment, dashboard
+│       └── modules/       # auth, user, equipment, assignment, maintenance,
+│                          #   credential, audit, automation, dashboard...
 └── frontend/              # SPA em React
     └── src/
         ├── contexts/      # AuthContext
-        ├── components/    # ProtectedRoute
-        ├── lib/           # cliente HTTP (axios)
-        └── pages/         # Login, Dashboard, Equipment
+        ├── components/    # Layout, Badge, PasswordInput, ...
+        ├── lib/           # cliente HTTP (axios), setores, importação
+        └── pages/         # Login, Dashboard, Equipment, Assignments,
+                           #   Users, Audit, Automations, ...
 ```
+
+## ☁️ Deploy
+
+- **Frontend:** Vercel
+- **Backend + PostgreSQL:** Render (com planejamento de migração para a
+  infraestrutura própria da empresa no **EasyPanel**, usando domínios da American Burrs)
