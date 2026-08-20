@@ -34,7 +34,7 @@ export function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState<Summary | null>(null);
   const [expanded, setExpanded] = useState<
-    "available" | "assigned" | "maintenance" | "overdue" | null
+    "total" | "available" | "assigned" | "maintenance" | "overdue" | null
   >(null);
 
   useEffect(() => {
@@ -62,6 +62,13 @@ export function Dashboard() {
   const retired = eq.RETIRED ?? 0;
   const total = available + assigned + maintenance + retired;
   const availablePct = total > 0 ? Math.round((available / total) * 100) : 0;
+  const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
+  // Composição do total por status (sem "Baixado"), com tom de badge.
+  const statusBreakdown = [
+    { label: "Disponível", count: available, tone: "green" },
+    { label: "Atribuído", count: assigned, tone: "blue" },
+    { label: "Manutenção", count: maintenance, tone: "amber" },
+  ];
 
   return (
     <div>
@@ -75,7 +82,25 @@ export function Dashboard() {
           value={total}
           label="Total de equipamentos"
           detail={`${available} disponíveis · ${assigned} em uso`}
-        />
+          expandable
+          expanded={expanded === "total"}
+          onToggle={() => setExpanded((e) => (e === "total" ? null : "total"))}
+        >
+          {total === 0 ? (
+            <p className="muted" style={{ padding: "8px 12px" }}>
+              Nenhum equipamento cadastrado.
+            </p>
+          ) : (
+            statusBreakdown.map((it) => (
+              <div key={it.label} className="stat-expand-row">
+                <span className={`badge badge-${it.tone}`}>{it.label}</span>
+                <span className="muted" style={{ fontSize: 13 }}>
+                  {pct(it.count)}% · {it.count}
+                </span>
+              </div>
+            ))
+          )}
+        </Stat>
         <Stat
           icon="✅"
           tone="green"
