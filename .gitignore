@@ -24,3 +24,6 @@ backend/prisma/*.db
 
 # Uploads gerados em runtime (termos assinados, etc.)
 backend/uploads/
+
+# Backups locais do banco (contem dados sensiveis — nunca versionar)
+backups/
