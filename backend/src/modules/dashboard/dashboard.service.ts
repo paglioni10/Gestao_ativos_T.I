@@ -13,6 +13,7 @@ export const dashboardService = {
       overdueEquipment,
       availableByTypeRaw,
       equipmentTypes,
+      activeReceivers,
     ] = await Promise.all([
       prisma.equipment.groupBy({
         by: ["status"],
@@ -48,6 +49,12 @@ export const dashboardService = {
         _count: { _all: true },
       }),
       prisma.equipmentType.findMany({ select: { id: true, name: true } }),
+      // Setor de cada colaborador com atribuição ativa — para a distribuição
+      // por setor da caixa "Atribuídos agora".
+      prisma.assignment.findMany({
+        where: { status: "ACTIVE" },
+        select: { receiver: { select: { sector: true } } },
+      }),
     ]);
 
     const equipmentByStatus = Object.fromEntries(
@@ -64,12 +71,28 @@ export const dashboardService = {
       }))
       .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type, "pt-BR"));
 
+    // Distribuição das atribuições ativas por setor do colaborador, com %.
+    const totalActive = activeReceivers.length;
+    const bySectorCount = new Map<string, number>();
+    for (const a of activeReceivers) {
+      const key = a.receiver.sector ?? "SEM_SETOR";
+      bySectorCount.set(key, (bySectorCount.get(key) ?? 0) + 1);
+    }
+    const assignedBySector = [...bySectorCount.entries()]
+      .map(([sector, count]) => ({
+        sector,
+        count,
+        pct: totalActive > 0 ? Math.round((count / totalActive) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count || a.sector.localeCompare(b.sector));
+
     return {
       equipmentByStatus,
       activeAssignments,
       upcomingMaintenance,
       overdueMaintenance,
       availableByType,
+      assignedBySector,
       maintenanceEquipment: maintenanceEquipment.map((m) => ({
         id: m.equipment.id,
         name: m.equipment.name,

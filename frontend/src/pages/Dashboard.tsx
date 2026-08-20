@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
+import { SECTOR_LABEL, Sector } from "../lib/sectors";
 
 interface EquipmentRef {
   id: string;
@@ -21,6 +22,7 @@ interface Summary {
   maintenanceEquipment: EquipmentRef[];
   overdueEquipment: EquipmentRef[];
   availableByType: { type: string; count: number }[];
+  assignedBySector: { sector: string; count: number; pct: number }[];
 }
 
 function formatDate(iso: string) {
@@ -32,7 +34,7 @@ export function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState<Summary | null>(null);
   const [expanded, setExpanded] = useState<
-    "available" | "maintenance" | "overdue" | null
+    "available" | "assigned" | "maintenance" | "overdue" | null
   >(null);
 
   useEffect(() => {
@@ -103,7 +105,29 @@ export function Dashboard() {
           value={summary.activeAssignments}
           label="Atribuídos agora"
           detail="em poder de colaboradores"
-        />
+          expandable
+          expanded={expanded === "assigned"}
+          onToggle={() => setExpanded((e) => (e === "assigned" ? null : "assigned"))}
+        >
+          {summary.assignedBySector.length === 0 ? (
+            <p className="muted" style={{ padding: "8px 12px" }}>
+              Nenhum equipamento atribuído no momento.
+            </p>
+          ) : (
+            summary.assignedBySector.map((it) => (
+              <div key={it.sector} className="stat-expand-row">
+                <span style={{ fontWeight: 600, fontSize: 14 }}>
+                  {it.sector === "SEM_SETOR"
+                    ? "Sem setor"
+                    : SECTOR_LABEL[it.sector as Sector] ?? it.sector}
+                </span>
+                <span className="muted" style={{ fontSize: 13 }}>
+                  {it.pct}% · {it.count}
+                </span>
+              </div>
+            ))
+          )}
+        </Stat>
       </div>
 
       <div
