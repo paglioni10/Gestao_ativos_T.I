@@ -20,6 +20,7 @@ interface Summary {
   overdueMaintenance: number;
   maintenanceEquipment: EquipmentRef[];
   overdueEquipment: EquipmentRef[];
+  availableByType: { type: string; count: number }[];
 }
 
 function formatDate(iso: string) {
@@ -30,7 +31,9 @@ function formatDate(iso: string) {
 export function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState<Summary | null>(null);
-  const [expanded, setExpanded] = useState<"maintenance" | "overdue" | null>(null);
+  const [expanded, setExpanded] = useState<
+    "available" | "maintenance" | "overdue" | null
+  >(null);
 
   useEffect(() => {
     api
@@ -63,7 +66,7 @@ export function Dashboard() {
       <h1>Olá, {user?.name}</h1>
       <p className="muted">Visão geral dos ativos</p>
 
-      <div className="stat-grid" style={{ marginTop: 20 }}>
+      <div className="stat-grid" style={{ marginTop: 20, alignItems: "start" }}>
         <Stat
           icon="📦"
           tone="blue"
@@ -77,7 +80,23 @@ export function Dashboard() {
           value={available}
           label="Disponíveis"
           detail={`${availablePct}% do inventário prontos para entrega`}
-        />
+          expandable
+          expanded={expanded === "available"}
+          onToggle={() => setExpanded((e) => (e === "available" ? null : "available"))}
+        >
+          {summary.availableByType.length === 0 ? (
+            <p className="muted" style={{ padding: "8px 12px" }}>
+              Nenhum equipamento disponível.
+            </p>
+          ) : (
+            summary.availableByType.map((it) => (
+              <div key={it.type} className="stat-expand-row">
+                <span style={{ fontWeight: 600, fontSize: 14 }}>{it.type}</span>
+                <span className="badge badge-green">{it.count}</span>
+              </div>
+            ))
+          )}
+        </Stat>
         <Stat
           icon="👥"
           tone="blue"

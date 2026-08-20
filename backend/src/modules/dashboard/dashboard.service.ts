@@ -11,6 +11,8 @@ export const dashboardService = {
       overdueMaintenance,
       maintenanceEquipment,
       overdueEquipment,
+      availableByTypeRaw,
+      equipmentTypes,
     ] = await Promise.all([
       prisma.equipment.groupBy({
         by: ["status"],
@@ -39,17 +41,35 @@ export const dashboardService = {
           equipment: { select: { id: true, name: true, serialNumber: true, type: { select: { name: true } } } },
         },
       }),
+      // Disponíveis (AVAILABLE) agrupados por tipo — para a lista da caixa "Disponíveis".
+      prisma.equipment.groupBy({
+        by: ["typeId"],
+        where: { status: "AVAILABLE" },
+        _count: { _all: true },
+      }),
+      prisma.equipmentType.findMany({ select: { id: true, name: true } }),
     ]);
 
     const equipmentByStatus = Object.fromEntries(
       byStatus.map((row) => [row.status, row._count._all])
     );
 
+    // Monta { tipo, quantidade } só dos tipos que têm ao menos 1 disponível,
+    // em ordem decrescente de quantidade.
+    const typeNameById = new Map(equipmentTypes.map((t) => [t.id, t.name]));
+    const availableByType = availableByTypeRaw
+      .map((row) => ({
+        type: typeNameById.get(row.typeId) ?? "—",
+        count: row._count._all,
+      }))
+      .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type, "pt-BR"));
+
     return {
       equipmentByStatus,
       activeAssignments,
       upcomingMaintenance,
       overdueMaintenance,
+      availableByType,
       maintenanceEquipment: maintenanceEquipment.map((m) => ({
         id: m.equipment.id,
         name: m.equipment.name,
