@@ -140,13 +140,13 @@ export function Dashboard() {
   );
 }
 
-function StatCard({ icon, value, label, detail, tone = "gray", alert = false, onClick }: {
+function StatCard({ icon, value, label, detail, alert = false, onClick }: {
   icon: ReactNode; value: number; label: string; detail?: string; tone?: string; alert?: boolean; onClick: () => void;
 }) {
   return (
     <button type="button" className={`stat-card stat-card-clickable${alert ? " alert" : ""}`} onClick={onClick}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-        <div className={`stat-icon tone-${tone}`} aria-hidden="true">{icon}</div>
+        <div className="stat-icon tone-gray" aria-hidden="true">{icon}</div>
         <span className="stat-chevron" aria-hidden="true">⌃</span>
       </div>
       <div className="stat-value">{value}</div>
