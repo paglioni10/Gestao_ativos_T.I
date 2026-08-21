@@ -26,6 +26,62 @@ const toneColors: Record<string, { bg: string; fg: string }> = {
   gray: { bg: "#f0f0f0", fg: "#2e2d2c" },
 };
 
+// Ícones monocromáticos (cinza) para os cartões — em vez de emojis coloridos,
+// deixam o quadrado de fundo uniformemente cinza claro.
+function Svg({ children }: { children: ReactNode }) {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+const ICONS: Record<Exclude<ModalKey, null>, ReactNode> = {
+  total: (
+    <Svg>
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <line x1="12" y1="22.08" x2="12" y2="12" />
+    </Svg>
+  ),
+  available: (
+    <Svg>
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </Svg>
+  ),
+  assigned: (
+    <Svg>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </Svg>
+  ),
+  maintenance: (
+    <Svg>
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </Svg>
+  ),
+  overdue: (
+    <Svg>
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </Svg>
+  ),
+};
+
 export function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -51,12 +107,12 @@ export function Dashboard() {
     );
   }
 
-  const modals: Record<Exclude<ModalKey, null>, { icon: string; iconBg: string; value: number; valueColor?: string; label: string; detail: string }> = {
-    total: { icon: "📦", iconBg: "#fdecec", value: summary.total, label: "Total de equipamentos", detail: summary.totalDetail },
-    available: { icon: "✅", iconBg: "#e2f5ea", value: summary.available, label: "Disponíveis", detail: summary.availableDetail },
-    assigned: { icon: "👥", iconBg: "#fdecec", value: summary.assigned, label: "Atribuídos agora", detail: summary.assignedDetail },
-    maintenance: { icon: "🔧", iconBg: "#fdeccf", value: summary.maintenance, label: "Em manutenção", detail: summary.maintenanceDetail },
-    overdue: { icon: "⚠️", iconBg: "#fdecec", value: summary.overdue, valueColor: "#941915", label: "Manutenções atrasadas", detail: summary.overdueDetail },
+  const modals: Record<Exclude<ModalKey, null>, { icon: ReactNode; value: number; valueColor?: string; label: string; detail: string }> = {
+    total: { icon: ICONS.total, value: summary.total, label: "Total de equipamentos", detail: summary.totalDetail },
+    available: { icon: ICONS.available, value: summary.available, label: "Disponíveis", detail: summary.availableDetail },
+    assigned: { icon: ICONS.assigned, value: summary.assigned, label: "Atribuídos agora", detail: summary.assignedDetail },
+    maintenance: { icon: ICONS.maintenance, value: summary.maintenance, label: "Em manutenção", detail: summary.maintenanceDetail },
+    overdue: { icon: ICONS.overdue, value: summary.overdue, valueColor: "#941915", label: "Manutenções atrasadas", detail: summary.overdueDetail },
   };
 
   const active = modal ? modals[modal] : null;
@@ -67,21 +123,21 @@ export function Dashboard() {
       <p className="muted">Visão geral dos ativos</p>
 
       <div className="stat-grid" style={{ marginTop: 20 }}>
-        <StatCard icon="📦" tone="red" value={summary.total} label="Total de equipamentos" detail={summary.totalDetail} onClick={() => setModal("total")} />
-        <StatCard icon="✅" tone="green" value={summary.available} label="Disponíveis" detail={summary.availableDetail} onClick={() => setModal("available")} />
-        <StatCard icon="👥" tone="red" value={summary.assigned} label="Atribuídos agora" detail={summary.assignedDetail} onClick={() => setModal("assigned")} />
+        <StatCard icon={ICONS.total} value={summary.total} label="Total de equipamentos" detail={summary.totalDetail} onClick={() => setModal("total")} />
+        <StatCard icon={ICONS.available} value={summary.available} label="Disponíveis" detail={summary.availableDetail} onClick={() => setModal("available")} />
+        <StatCard icon={ICONS.assigned} value={summary.assigned} label="Atribuídos agora" detail={summary.assignedDetail} onClick={() => setModal("assigned")} />
       </div>
 
       <div className="stat-grid" style={{ marginTop: 16, gridTemplateColumns: "repeat(2, 1fr)" }}>
-        <StatCard icon="🔧" tone="amber" value={summary.maintenance} label="Em manutenção" detail={summary.maintenanceDetail} onClick={() => setModal("maintenance")} />
-        <StatCard icon="⚠️" tone="red" value={summary.overdue} label="Manutenções atrasadas" detail={summary.overdueDetail} onClick={() => setModal("overdue")} alert={summary.overdue > 0} />
+        <StatCard icon={ICONS.maintenance} value={summary.maintenance} label="Em manutenção" detail={summary.maintenanceDetail} onClick={() => setModal("maintenance")} />
+        <StatCard icon={ICONS.overdue} value={summary.overdue} label="Manutenções atrasadas" detail={summary.overdueDetail} onClick={() => setModal("overdue")} alert={summary.overdue > 0} />
       </div>
 
       {active && (
         <div className="stat-modal-backdrop" onClick={() => setModal(null)}>
           <div className="stat-modal" onClick={(e) => e.stopPropagation()}>
             <div className="stat-modal-header">
-              <div className="stat-icon" style={{ background: active.iconBg }} aria-hidden="true">{active.icon}</div>
+              <div className="stat-icon tone-gray" aria-hidden="true">{active.icon}</div>
               <button className="stat-modal-close" aria-label="Fechar" onClick={() => setModal(null)}>✕</button>
             </div>
             <div className="stat-modal-body-top">
