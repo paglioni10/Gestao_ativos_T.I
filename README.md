@@ -1,6 +1,6 @@
 # 📦 T.I STORAGE
 
-**Gestão de Ativos de TI** — sistema para controlar a entrega, devolução e
+**Gestão de Ativos de TI**: sistema para controlar a entrega, devolução e
 responsabilidade sobre equipamentos corporativos (notebooks, celulares,
 monitores, periféricos e afins).
 
@@ -14,8 +14,8 @@ monitores, periféricos e afins).
 Este projeto **nasceu como um projeto de portfólio**, para demonstrar a
 construção de um sistema full-stack de gestão de ativos.
 
-Depois da primeira versão, a **[American Burrs](https://americanburrs.com)** —
-empresa onde atuo — **se interessou em usá-lo internamente**. A partir daí o
+Depois da primeira versão, a **[American Burrs](https://americanburrs.com)**,
+empresa onde atuo, **se interessou em usá-lo internamente**. A partir daí o
 T.I STORAGE **deixou de ser um projeto de portfólio e passou a ser uma
 ferramenta interna de verdade**, usada pela equipe de T.I no dia a dia.
 
