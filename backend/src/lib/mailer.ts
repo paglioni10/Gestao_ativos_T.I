@@ -1,3 +1,4 @@
+import { lookup } from "node:dns/promises";
 import nodemailer, { Transporter } from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 import { env } from "../config/env.js";
@@ -14,18 +15,28 @@ export function isMailConfigured(): boolean {
   return Boolean(env.smtp.host && env.smtp.user && env.smtp.pass);
 }
 
-function getTransporter(): Transporter {
+async function getTransporter(): Promise<Transporter> {
   if (!transporter) {
-    // `family` é aceito em runtime (repassado ao socket), mas não consta no
-    // tipo desta versão do nodemailer — por isso a intersecção.
+    // Resolve o host para um endereço IPv4 explicitamente e conecta nele.
+    // Motivo: ambientes como o Render não têm saída IPv6, e o nodemailer
+    // pode escolher o IPv6 do smtp.office365.com -> ENETUNREACH. Usar o IP
+    // v4 direto elimina isso; o `servername` mantém a validação do
+    // certificado TLS pelo nome original do host.
+    let host = env.smtp.host;
+    try {
+      const res = await lookup(env.smtp.host, { family: 4 });
+      host = res.address;
+    } catch {
+      // Se a resolução falhar, cai no hostname original.
+    }
+
     const options: SMTPTransport.Options & { family?: number } = {
-      host: env.smtp.host,
+      host,
       port: env.smtp.port,
       secure: env.smtp.secure,
       auth: { user: env.smtp.user, pass: env.smtp.pass },
-      // Força IPv4: alguns hosts (ex.: Render) não têm saída IPv6, e o Node
-      // pode tentar o IPv6 do smtp.office365.com primeiro -> ENETUNREACH.
       family: 4,
+      tls: { servername: env.smtp.host },
       // Timeouts curtos para não travar a requisição (ex.: atribuição) se o
       // servidor SMTP não responder ou recusar a conexão/autenticação.
       connectionTimeout: 10000,
@@ -59,7 +70,8 @@ export async function sendMail({
     );
     return { sent: false };
   }
-  await getTransporter().sendMail({
+  const tx = await getTransporter();
+  await tx.sendMail({
     from: env.smtp.from || env.smtp.user,
     to,
     subject,
