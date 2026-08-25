@@ -37,11 +37,11 @@ async function getTransporter(): Promise<Transporter> {
       auth: { user: env.smtp.user, pass: env.smtp.pass },
       family: 4,
       tls: { servername: env.smtp.host },
-      // Timeouts curtos para não travar a requisição (ex.: atribuição) se o
-      // servidor SMTP não responder ou recusar a conexão/autenticação.
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      // Timeouts curtos: o backend responde rápido com um erro claro em vez
+      // de pendurar (o que faz o gateway devolver 502/HTML sem mensagem).
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000,
       // Office 365 usa STARTTLS na porta 587 (secure=false).
       requireTLS: env.smtp.port === 587 && !env.smtp.secure,
     };
@@ -71,12 +71,18 @@ export async function sendMail({
     return { sent: false };
   }
   const tx = await getTransporter();
-  await tx.sendMail({
-    from: env.smtp.from || env.smtp.user,
-    to,
-    subject,
-    text: text ?? html.replace(/<[^>]+>/g, " "),
-    html,
-  });
+  try {
+    await tx.sendMail({
+      from: env.smtp.from || env.smtp.user,
+      to,
+      subject,
+      text: text ?? html.replace(/<[^>]+>/g, " "),
+      html,
+    });
+  } catch (err) {
+    // Log detalhado no servidor (aparece nos Logs do Render) para diagnóstico.
+    console.error(`[mailer] falha ao enviar para "${to}":`, err);
+    throw err;
+  }
   return { sent: true };
 }
