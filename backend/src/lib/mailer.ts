@@ -20,6 +20,13 @@ function getTransporter(): Transporter {
       port: env.smtp.port,
       secure: env.smtp.secure,
       auth: { user: env.smtp.user, pass: env.smtp.pass },
+      // Timeouts curtos para não travar a requisição (ex.: atribuição) se o
+      // servidor SMTP não responder ou recusar a conexão/autenticação.
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      // Office 365 usa STARTTLS na porta 587 (secure=false).
+      requireTLS: env.smtp.port === 587 && !env.smtp.secure,
     });
   }
   return transporter;

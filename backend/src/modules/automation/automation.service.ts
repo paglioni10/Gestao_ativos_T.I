@@ -128,16 +128,22 @@ export const automationService = {
         400
       );
     }
-    const { sent } = await sendMail({
-      to: automation.recipient,
-      subject: `Teste de automação — ${automation.name}`,
-      html: `
-        <p>Este é um <strong>e-mail de teste</strong> da automação "${automation.name}".</p>
-        <p>Se você recebeu esta mensagem, o envio de e-mail está funcionando.</p>
-        <p style="color:#888;font-size:12px">T.I STORAGE (American Burrs)</p>
-      `,
-    });
-    return { sent, recipient: automation.recipient };
+    try {
+      const { sent } = await sendMail({
+        to: automation.recipient,
+        subject: `Teste de automação — ${automation.name}`,
+        html: `
+          <p>Este é um <strong>e-mail de teste</strong> da automação "${automation.name}".</p>
+          <p>Se você recebeu esta mensagem, o envio de e-mail está funcionando.</p>
+          <p style="color:#888;font-size:12px">T.I STORAGE (American Burrs)</p>
+        `,
+      });
+      return { sent, recipient: automation.recipient };
+    } catch (err) {
+      // Surfaça o motivo real do SMTP (auth, conexão etc.) em vez de um 500.
+      const detail = err instanceof Error ? err.message : "erro desconhecido";
+      throw new AppError(`Falha ao enviar e-mail: ${detail}`, 400);
+    }
   },
 
   async remove(id: string, performedById: string) {
