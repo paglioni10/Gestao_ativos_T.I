@@ -69,6 +69,18 @@ export function Users() {
     return true;
   });
 
+  // Ordena por setor (A-Z, sem setor por último) e, dentro do setor, por nome (A-Z).
+  filteredUsers.sort((a, b) => {
+    const sa = a.sector ? SECTOR_LABEL[a.sector] : "";
+    const sb = b.sector ? SECTOR_LABEL[b.sector] : "";
+    if (sa !== sb) {
+      if (!sa) return 1;
+      if (!sb) return -1;
+      return sa.localeCompare(sb, "pt-BR", { sensitivity: "base" });
+    }
+    return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
+  });
+
   // Importação em massa por planilha (.xlsx/.csv)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
