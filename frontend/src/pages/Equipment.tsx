@@ -118,6 +118,7 @@ export function Equipment() {
       serialNumber: item.serialNumber ?? "",
       notes: item.notes ?? "",
     });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleDelete(item: Equipment) {
