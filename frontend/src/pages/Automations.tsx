@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
+import { useConfirm } from "../components/ConfirmDialog";
 import { Spinner } from "../components/Spinner";
 import { api, getErrorMessage } from "../lib/api";
 import { sortEquipmentTypes } from "../lib/equipmentTypes";
@@ -31,6 +32,7 @@ const emptyForm = {
 };
 
 export function Automations() {
+  const { confirm } = useConfirm();
   const [items, setItems] = useState<Automation[]>([]);
   const [types, setTypes] = useState<EquipmentType[]>([]);
   const [form, setForm] = useState(emptyForm);
@@ -121,7 +123,12 @@ export function Automations() {
   }
 
   async function handleDelete(a: Automation) {
-    if (!confirm(`Excluir a automação "${a.name}"?`)) return;
+    const ok = await confirm({
+      title: `Excluir a automação "${a.name}"?`,
+      message: "Esta ação não pode ser desfeita.",
+      confirmText: "Excluir",
+    });
+    if (!ok) return;
     setError("");
     setOk("");
     try {

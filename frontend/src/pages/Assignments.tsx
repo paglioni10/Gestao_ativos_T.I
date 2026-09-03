@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Badge } from "../components/Badge";
+import { useConfirm } from "../components/ConfirmDialog";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
@@ -43,6 +44,7 @@ interface User {
 export function Assignments() {
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  const { confirm } = useConfirm();
 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [available, setAvailable] = useState<Equipment[]>([]);
@@ -143,7 +145,13 @@ export function Assignments() {
   }
 
   async function handleReturn(item: Assignment) {
-    if (!confirm(`Confirmar devolução de "${item.equipment.name}"?`)) return;
+    const ok = await confirm({
+      title: "Confirmar devolução",
+      message: `Registrar a devolução de "${item.equipment.name}"?`,
+      confirmText: "Confirmar devolução",
+      tone: "primary",
+    });
+    if (!ok) return;
     setError("");
     try {
       await api.patch(`/assignments/${item.id}/return`);

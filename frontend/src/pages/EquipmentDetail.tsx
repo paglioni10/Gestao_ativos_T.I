@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/Badge";
+import { useConfirm } from "../components/ConfirmDialog";
 import { PasswordInput } from "../components/PasswordInput";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
@@ -47,6 +48,7 @@ export function EquipmentDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  const { confirm } = useConfirm();
 
   const [equipment, setEquipment] = useState<EquipmentDetail | null>(null);
   const [qrCode, setQrCode] = useState<string>("");
@@ -130,7 +132,12 @@ export function EquipmentDetail() {
   }
 
   async function deleteCredential(credId: string) {
-    if (!confirm("Remover esta credencial?")) return;
+    const ok = await confirm({
+      title: "Remover credencial",
+      message: "Deseja remover esta credencial?",
+      confirmText: "Remover",
+    });
+    if (!ok) return;
     setError("");
     try {
       await api.delete(`/credentials/${credId}`);

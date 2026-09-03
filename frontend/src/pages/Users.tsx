@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Badge } from "../components/Badge";
+import { useConfirm } from "../components/ConfirmDialog";
 import { PasswordInput } from "../components/PasswordInput";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
@@ -35,6 +36,7 @@ export function Users() {
   const [filterName, setFilterName] = useState("");
   const [filterSector, setFilterSector] = useState<Sector | "">("");
   const [filterRole, setFilterRole] = useState<"" | "ADMIN" | "COLLABORATOR">("");
+  const { confirm } = useConfirm();
 
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
@@ -149,12 +151,13 @@ export function Users() {
   }
 
   async function handleDelete(u: User) {
-    if (
-      !confirm(
-        `Excluir "${u.name}"? Equipamentos atribuídos a ele(a) ficarão disponíveis novamente.`
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: `Excluir "${u.name}"?`,
+      message:
+        "Equipamentos atribuídos a ele(a) ficarão disponíveis novamente.",
+      confirmText: "Excluir",
+    });
+    if (!ok) return;
     setError("");
     setOk("");
     try {

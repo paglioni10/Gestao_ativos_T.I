@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
+import { ConfirmProvider } from "./components/ConfirmDialog";
 import { RequireAdmin } from "./components/RequireAdmin";
 import { TopProgressBar } from "./components/TopProgressBar";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -18,6 +19,7 @@ import { Users } from "./pages/Users";
 export function App() {
   return (
     <AuthProvider>
+      <ConfirmProvider>
       <TopProgressBar />
       <BrowserRouter>
         <Routes>
@@ -46,6 +48,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </ConfirmProvider>
     </AuthProvider>
   );
 }

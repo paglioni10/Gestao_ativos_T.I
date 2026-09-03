@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "../components/Badge";
+import { useConfirm } from "../components/ConfirmDialog";
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "../contexts/AuthContext";
 import { api, getErrorMessage } from "../lib/api";
@@ -25,6 +26,7 @@ interface Equipment {
 export function Equipment() {
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  const { confirm, promptReason } = useConfirm();
 
   const [items, setItems] = useState<Equipment[]>([]);
   const [types, setTypes] = useState<EquipmentType[]>([]);
@@ -122,7 +124,12 @@ export function Equipment() {
   }
 
   async function handleDelete(item: Equipment) {
-    if (!confirm(`Dar baixa em "${item.name}"?`)) return;
+    const ok = await confirm({
+      title: "Dar baixa no equipamento",
+      message: `Dar baixa em "${item.name}"?`,
+      confirmText: "Dar baixa",
+    });
+    if (!ok) return;
     setError("");
     try {
       await api.delete(`/equipment/${item.id}`);
@@ -135,15 +142,16 @@ export function Equipment() {
   // Exclusão definitiva (hard delete). Diferente da baixa, remove o
   // equipamento de vez. Bloqueada no backend se estiver atribuído.
   async function handleHardDelete(item: Equipment) {
-    const reason = prompt(
-      `Excluir DEFINITIVAMENTE "${item.name}"? Esta ação não pode ser desfeita.\n\nInforme o motivo da exclusão:`
-    );
-    // prompt retorna null se cancelar; string vazia se confirmar sem digitar.
+    const reason = await promptReason({
+      title: `Excluir DEFINITIVAMENTE "${item.name}"?`,
+      message: "Esta ação não pode ser desfeita.",
+      reasonLabel: "Motivo da exclusão",
+      placeholder: "Descreva o motivo (mínimo 3 caracteres)",
+      minLength: 3,
+      confirmText: "Excluir definitivamente",
+    });
+    // promptReason retorna null se cancelar; o texto já validado se confirmar.
     if (reason === null) return;
-    if (reason.trim().length < 3) {
-      setError("Motivo da exclusão é obrigatório (mínimo 3 caracteres).");
-      return;
-    }
     setError("");
     try {
       await api.delete(`/equipment/${item.id}/permanent`, {
@@ -205,7 +213,12 @@ export function Equipment() {
 
   // Exclui um tipo (bloqueado no backend se houver equipamento usando-o).
   async function deleteType(type: EquipmentType) {
-    if (!confirm(`Excluir o tipo "${type.name}"?`)) return;
+    const ok = await confirm({
+      title: `Excluir o tipo "${type.name}"?`,
+      message: "O tipo só pode ser removido se nenhum equipamento o utiliza.",
+      confirmText: "Excluir",
+    });
+    if (!ok) return;
     setError("");
     try {
       await api.delete(`/equipment-types/${type.id}`);
