@@ -87,6 +87,13 @@ export function Equipment() {
     return true;
   });
 
+  // Quando filtrado por um tipo, ordena por nome do equipamento (A-Z)
+  if (filterTypeId) {
+    filteredItems.sort((a, b) =>
+      a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" })
+    );
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
