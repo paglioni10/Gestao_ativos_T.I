@@ -7,7 +7,7 @@
 | **Organização** | American Burrs |
 | **Versão do documento** | 1.0 |
 | **Data** | 08/09/2026 |
-| **Autores** | Time de Engenharia |
+| **Autor** | Nicolas Paglioni |
 | **Status** | Em produção |
 
 ---
