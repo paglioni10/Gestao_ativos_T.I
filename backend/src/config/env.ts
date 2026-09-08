@@ -18,6 +18,10 @@ export const env = {
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
   credentialsKey: required("CREDENTIALS_KEY"),
 
+  // Segredo compartilhado com o cron externo (GitHub Actions) que dispara a
+  // checagem diária de prazos de manutenção. Se vazio, o endpoint fica fechado.
+  cronSecret: process.env.CRON_SECRET ?? "",
+
   // SMTP (Outlook/Office 365) para as automações enviarem e-mail. Opcional:
   // se não configurado, o envio é ignorado (a automação ainda registra na
   // auditoria). Preencher no EasyPanel quando for pra valer.

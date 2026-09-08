@@ -4,7 +4,8 @@ import { isMailConfigured, sendMail } from "../../lib/mailer.js";
 import { prisma } from "../../lib/prisma.js";
 import { env } from "../../config/env.js";
 
-interface CreateAutomationInput {
+interface CreateLowStockInput {
+  type?: "LOW_STOCK";
   equipmentTypeId: string;
   threshold: number;
   recipient: string;
@@ -12,12 +13,30 @@ interface CreateAutomationInput {
   active?: boolean;
 }
 
-type UpdateAutomationInput = Partial<CreateAutomationInput>;
+interface CreateMaintenanceDueInput {
+  type: "MAINTENANCE_DUE";
+  leadDays: number;
+  recipient: string;
+  name?: string;
+  active?: boolean;
+}
+
+type CreateAutomationInput = CreateLowStockInput | CreateMaintenanceDueInput;
+
+interface UpdateAutomationInput {
+  threshold?: number;
+  leadDays?: number;
+  recipient?: string;
+  name?: string;
+  active?: boolean;
+}
 
 // Nome automático quando o admin não informa um.
 function defaultName(typeName: string): string {
   return `Estoque baixo — ${typeName}`;
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const automationService = {
   // Lista as automações com o nome do tipo e a contagem atual de disponíveis
@@ -39,11 +58,37 @@ export const automationService = {
     );
     return automations.map((a) => ({
       ...a,
-      availableNow: countByType.get(a.equipmentTypeId) ?? 0,
+      availableNow: a.equipmentTypeId
+        ? countByType.get(a.equipmentTypeId) ?? 0
+        : 0,
     }));
   },
 
   async create(data: CreateAutomationInput, performedById: string) {
+    if (data.type === "MAINTENANCE_DUE") {
+      const automation = await prisma.automation.create({
+        data: {
+          type: "MAINTENANCE_DUE",
+          name:
+            data.name?.trim() ||
+            `Prazo de manutenção — avisar ${data.leadDays} dia(s) antes`,
+          leadDays: data.leadDays,
+          channel: "EMAIL",
+          recipient: data.recipient.trim(),
+          active: data.active ?? true,
+        },
+      });
+      await recordAudit({
+        action: "AUTOMATION_CREATED",
+        entity: "Automation",
+        entityId: automation.id,
+        performedById,
+        metadata: { name: automation.name, leadDays: automation.leadDays },
+      });
+      return automation;
+    }
+
+    // LOW_STOCK
     const type = await prisma.equipmentType.findUnique({
       where: { id: data.equipmentTypeId },
     });
@@ -93,6 +138,7 @@ export const automationService = {
       data: {
         ...(data.name !== undefined ? { name: data.name.trim() } : {}),
         ...(data.threshold !== undefined ? { threshold: data.threshold } : {}),
+        ...(data.leadDays !== undefined ? { leadDays: data.leadDays } : {}),
         ...(data.recipient !== undefined
           ? { recipient: data.recipient.trim() }
           : {}),
@@ -107,7 +153,8 @@ export const automationService = {
       entity: "Automation",
       entityId: id,
       performedById,
-      metadata: { changes: data },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      metadata: { changes: data as any },
     });
     return automation;
   },
@@ -179,10 +226,17 @@ export const automationService = {
       });
 
       for (const automation of automations) {
-        const low = available <= automation.threshold;
+        const low = available <= (automation.threshold ?? 0);
 
         if (low && !automation.alreadyAlerted) {
-          await this.fireLowStock(automation, available);
+          await this.fireLowStock(
+            {
+              ...automation,
+              threshold: automation.threshold ?? 0,
+              equipmentType: automation.equipmentType ?? { name: "—" },
+            },
+            available
+          );
         } else if (!low && automation.alreadyAlerted) {
           // Estoque se recuperou: rearma o alerta para a próxima virada.
           await prisma.automation.update({
@@ -240,6 +294,151 @@ export const automationService = {
         type: typeName,
         available,
         threshold: automation.threshold,
+        recipient: automation.recipient,
+        emailSent: sent,
+      },
+    });
+  },
+
+  // Checagem diária (disparada por cron externo) das automações de prazo de
+  // manutenção. Para cada manutenção pendente (não concluída), envia UM e-mail
+  // ao entrar na janela de antecedência (APPROACHING) e UM ao estourar o prazo
+  // (OVERDUE). A tabela MaintenanceReminder garante idempotência — nunca repete
+  // o mesmo aviso, mesmo rodando todo dia. Nunca lança para o chamador.
+  async runMaintenanceChecks(): Promise<{
+    emailConfigured: boolean;
+    automations: number;
+    pending: number;
+    approachingSent: number;
+    overdueSent: number;
+  }> {
+    const summary = {
+      emailConfigured: isMailConfigured(),
+      automations: 0,
+      pending: 0,
+      approachingSent: 0,
+      overdueSent: 0,
+    };
+    try {
+      const automations = await prisma.automation.findMany({
+        where: { type: "MAINTENANCE_DUE", active: true },
+      });
+      summary.automations = automations.length;
+      if (automations.length === 0) return summary;
+
+      const now = new Date();
+      const pending = await prisma.maintenanceRecord.findMany({
+        where: { completedAt: null },
+        include: { equipment: { select: { name: true } } },
+        orderBy: { scheduledFor: "asc" },
+      });
+      summary.pending = pending.length;
+      if (pending.length === 0) return summary;
+
+      for (const automation of automations) {
+        const lead = automation.leadDays ?? 0;
+        for (const m of pending) {
+          const dueMs = m.scheduledFor.getTime() - now.getTime();
+          let kind: "APPROACHING" | "OVERDUE" | null = null;
+          if (dueMs < 0) kind = "OVERDUE";
+          else if (dueMs <= lead * DAY_MS) kind = "APPROACHING";
+          if (!kind) continue;
+
+          try {
+            // Idempotência: pula se este aviso já foi enviado.
+            const already = await prisma.maintenanceReminder.findUnique({
+              where: {
+                automationId_maintenanceRecordId_kind: {
+                  automationId: automation.id,
+                  maintenanceRecordId: m.id,
+                  kind,
+                },
+              },
+            });
+            if (already) continue;
+
+            await this.fireMaintenanceReminder(automation, m, kind, now);
+            if (kind === "APPROACHING") summary.approachingSent += 1;
+            else summary.overdueSent += 1;
+          } catch (err) {
+            console.error(
+              `[automation] falha ao avisar manutenção ${m.id} (${kind}):`,
+              err
+            );
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[automation] falha na checagem de manutenções:", err);
+    }
+    return summary;
+  },
+
+  // Envia o e-mail de um aviso de manutenção, grava o registro de idempotência
+  // e a trilha de auditoria. Lança se o envio falhar (o chamador conta/loga).
+  async fireMaintenanceReminder(
+    automation: { id: string; name: string; recipient: string },
+    maintenance: {
+      id: string;
+      description: string;
+      scheduledFor: Date;
+      equipment: { name: string };
+    },
+    kind: "APPROACHING" | "OVERDUE",
+    now: Date
+  ): Promise<void> {
+    const equip = maintenance.equipment.name;
+    const dateStr = maintenance.scheduledFor.toLocaleDateString("pt-BR");
+    const diffDays = Math.ceil(
+      Math.abs(maintenance.scheduledFor.getTime() - now.getTime()) / DAY_MS
+    );
+    const link = `${env.corsOrigin}/equipamentos`;
+
+    const subject =
+      kind === "OVERDUE"
+        ? `🔴 Manutenção vencida: ${equip}`
+        : `🟠 Manutenção se aproximando: ${equip}`;
+    const lead =
+      kind === "OVERDUE"
+        ? `<p>A manutenção de <strong>${equip}</strong> <strong>venceu</strong> em ${dateStr} (há ${diffDays} dia(s)) e ainda não foi concluída.</p>`
+        : `<p>A manutenção de <strong>${equip}</strong> vence em <strong>${diffDays} dia(s)</strong> (prazo: ${dateStr}).</p>`;
+    const html = `
+      <p>Olá,</p>
+      ${lead}
+      <p>Descrição: ${maintenance.description}</p>
+      <p><a href="${link}">Abrir a lista de equipamentos</a></p>
+      <p style="color:#888;font-size:12px">Mensagem automática — T.I STORAGE (American Burrs)</p>
+    `;
+
+    const { sent } = await sendMail({
+      to: automation.recipient,
+      subject,
+      html,
+    });
+
+    await prisma.maintenanceReminder.create({
+      data: {
+        automationId: automation.id,
+        maintenanceRecordId: maintenance.id,
+        kind,
+      },
+    });
+
+    await prisma.automation.update({
+      where: { id: automation.id },
+      data: { lastTriggeredAt: new Date() },
+    });
+
+    await recordAudit({
+      action: "AUTOMATION_TRIGGERED",
+      entity: "Automation",
+      entityId: automation.id,
+      performedById: undefined,
+      metadata: {
+        name: automation.name,
+        kind,
+        equipment: equip,
+        scheduledFor: maintenance.scheduledFor.toISOString(),
         recipient: automation.recipient,
         emailSent: sent,
       },

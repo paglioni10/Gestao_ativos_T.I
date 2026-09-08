@@ -1,0 +1,30 @@
+name: Avisos de manutenção
+
+# Checagem diária dos prazos de manutenção. Chama o endpoint protegido do
+# backend, que envia e-mail quando uma manutenção pendente está chegando perto
+# do prazo (dias de antecedência configurados) ou já estourou. A idempotência
+# fica no backend (tabela MaintenanceReminder) — rodar mais de uma vez no dia
+# não gera e-mail duplicado.
+#
+# Requer o secret CRON_SECRET no repositório, com o MESMO valor da env
+# CRON_SECRET configurada no Render (Environment do serviço backend).
+#
+# OBS: o cron do GitHub Actions em repositórios free pode atrasar alguns
+# minutos — irrelevante para uma checagem diária.
+on:
+  schedule:
+    - cron: "0 11 * * *" # ~08:00 no horário de Brasília (UTC-3)
+  workflow_dispatch: {} # permite rodar manualmente pela aba Actions
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispara a checagem de prazos de manutenção
+        run: >
+          curl -fsS
+          --retry 5 --retry-all-errors --retry-delay 20
+          --max-time 120
+          -X POST
+          -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+          https://gestao-ativos-t-i.onrender.com/api/automations/cron/maintenance-checks

@@ -1,9 +1,20 @@
 import { Router } from "express";
 import { asyncHandler } from "../../lib/asyncHandler.js";
 import { ensureAdmin, ensureAuth } from "../../middlewares/auth.js";
+import { ensureCronSecret } from "../../middlewares/cronAuth.js";
 import { automationController } from "./automation.controller.js";
 
 export const automationRoutes = Router();
+
+// Endpoint do cron externo (GitHub Actions): checagem diária dos prazos de
+// manutenção. Fica ANTES do middleware de JWT — é protegido pelo segredo
+// compartilhado (header x-cron-secret), não por login.
+// POST /api/automations/cron/maintenance-checks
+automationRoutes.post(
+  "/cron/maintenance-checks",
+  ensureCronSecret,
+  asyncHandler(automationController.runMaintenanceChecks)
+);
 
 // Automações são governança — restritas a administradores.
 automationRoutes.use(ensureAuth, ensureAdmin);

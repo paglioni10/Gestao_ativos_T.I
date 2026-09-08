@@ -112,9 +112,11 @@ model Automation {
   id              String            @id @default(uuid())
   type            AutomationType    @default(LOW_STOCK)
   name            String
-  equipmentType   EquipmentType     @relation(fields: [equipmentTypeId], references: [id])
-  equipmentTypeId String
-  threshold       Int // limite N: alerta quando disponíveis <= N
+  // LOW_STOCK: escopo por tipo de equipamento. MAINTENANCE_DUE: global (null).
+  equipmentType   EquipmentType?    @relation(fields: [equipmentTypeId], references: [id])
+  equipmentTypeId String?
+  threshold       Int? // LOW_STOCK: limite N (alerta quando disponíveis <= N)
+  leadDays        Int? // MAINTENANCE_DUE: dias de antecedência do aviso
   channel         AutomationChannel @default(EMAIL)
   recipient       String // e-mail que deve receber o aviso
   active          Boolean           @default(true)
@@ -122,12 +124,15 @@ model Automation {
   // estoque volta a subir acima do limite.
   alreadyAlerted  Boolean           @default(false)
   lastTriggeredAt DateTime?
+  // Rastro de avisos de manutenção já enviados (idempotência: 1 por prazo).
+  reminders       MaintenanceReminder[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 }
 
 enum AutomationType {
   LOW_STOCK
+  MAINTENANCE_DUE
 }
 
 enum AutomationChannel {
@@ -186,6 +191,26 @@ model MaintenanceRecord {
 
   equipment   Equipment @relation(fields: [equipmentId], references: [id])
   equipmentId String
+
+  reminders MaintenanceReminder[]
+}
+
+// ---------------------------------------------------------------------------
+// Aviso de manutenção já enviado. Garante idempotência: no máximo um e-mail
+// de cada tipo (APPROACHING = perto do prazo, OVERDUE = prazo estourado) por
+// combinação automação + manutenção. A checagem diária consulta esta tabela
+// antes de disparar, evitando spam.
+// ---------------------------------------------------------------------------
+model MaintenanceReminder {
+  id                  String            @id @default(uuid())
+  automation          Automation        @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId        String
+  maintenance         MaintenanceRecord @relation(fields: [maintenanceRecordId], references: [id], onDelete: Cascade)
+  maintenanceRecordId String
+  kind                String // "APPROACHING" | "OVERDUE"
+  sentAt              DateTime          @default(now())
+
+  @@unique([automationId, maintenanceRecordId, kind])
 }
 
 // ---------------------------------------------------------------------------

@@ -10,13 +10,16 @@ interface EquipmentType {
   name: string;
 }
 
+type AutomationType = "LOW_STOCK" | "MAINTENANCE_DUE";
+
 interface Automation {
   id: string;
-  type: "LOW_STOCK";
+  type: AutomationType;
   name: string;
-  equipmentTypeId: string;
-  equipmentType: { id: string; name: string };
-  threshold: number;
+  equipmentTypeId: string | null;
+  equipmentType: { id: string; name: string } | null;
+  threshold: number | null;
+  leadDays: number | null;
   channel: "EMAIL";
   recipient: string;
   active: boolean;
@@ -25,8 +28,10 @@ interface Automation {
 }
 
 const emptyForm = {
+  kind: "LOW_STOCK" as AutomationType,
   equipmentTypeId: "",
   threshold: 3,
+  leadDays: 7,
   recipient: "",
   name: "",
 };
@@ -62,7 +67,11 @@ export function Automations() {
 
   function resetForm() {
     setEditingId(null);
-    setForm({ ...emptyForm, equipmentTypeId: types[0]?.id ?? "" });
+    setForm((f) => ({
+      ...emptyForm,
+      kind: f.kind,
+      equipmentTypeId: types[0]?.id ?? "",
+    }));
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -71,14 +80,30 @@ export function Automations() {
     setOk("");
     try {
       if (editingId) {
+        // Envia só o campo relevante ao tipo da automação em edição.
         await api.put(`/automations/${editingId}`, {
-          threshold: form.threshold,
+          ...(form.kind === "MAINTENANCE_DUE"
+            ? { leadDays: form.leadDays }
+            : { threshold: form.threshold }),
           recipient: form.recipient,
           name: form.name || undefined,
         });
         setOk("Automação atualizada.");
+      } else if (form.kind === "MAINTENANCE_DUE") {
+        await api.post("/automations", {
+          type: "MAINTENANCE_DUE",
+          leadDays: form.leadDays,
+          recipient: form.recipient,
+          name: form.name || undefined,
+        });
+        setOk("Automação criada.");
       } else {
-        await api.post("/automations", { ...form, name: form.name || undefined });
+        await api.post("/automations", {
+          equipmentTypeId: form.equipmentTypeId,
+          threshold: form.threshold,
+          recipient: form.recipient,
+          name: form.name || undefined,
+        });
         setOk("Automação criada.");
       }
       resetForm();
@@ -91,8 +116,10 @@ export function Automations() {
   function handleEdit(a: Automation) {
     setEditingId(a.id);
     setForm({
-      equipmentTypeId: a.equipmentTypeId,
-      threshold: a.threshold,
+      kind: a.type,
+      equipmentTypeId: a.equipmentTypeId ?? "",
+      threshold: a.threshold ?? 3,
+      leadDays: a.leadDays ?? 7,
       recipient: a.recipient,
       name: a.name,
     });
@@ -149,8 +176,8 @@ export function Automations() {
     <div>
       <h1>Automações</h1>
       <p className="muted">
-        Regras que reagem a eventos do sistema. Hoje: alerta de estoque baixo por
-        e-mail.
+        Regras que reagem a eventos do sistema: alerta de estoque baixo e aviso
+        de prazo de manutenção por e-mail.
       </p>
 
       {error && <p className="alert-error">{error}</p>}
@@ -169,41 +196,81 @@ export function Automations() {
 
       <form className="panel" onSubmit={handleSubmit}>
         <p style={{ marginTop: 0, fontWeight: 600 }}>
-          {editingId ? "Editar automação" : "Nova automação — Alerta de estoque baixo"}
+          {editingId
+            ? "Editar automação"
+            : form.kind === "MAINTENANCE_DUE"
+            ? "Nova automação — Prazo de manutenção"
+            : "Nova automação — Alerta de estoque baixo"}
         </p>
         <div className="form-row align-top" style={{ alignItems: "flex-end" }}>
           <div className="field">
-            <label htmlFor="au-type">Tipo de equipamento</label>
+            <label htmlFor="au-kind">Tipo de automação</label>
             <select
-              id="au-type"
-              value={form.equipmentTypeId}
-              onChange={(e) => setForm({ ...form, equipmentTypeId: e.target.value })}
+              id="au-kind"
+              value={form.kind}
+              onChange={(e) =>
+                setForm({ ...form, kind: e.target.value as AutomationType })
+              }
               disabled={editingId != null}
-              required
             >
-              {availableTypes.length === 0 && (
-                <option value="">Todos os tipos já têm automação</option>
-              )}
-              {availableTypes.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
+              <option value="LOW_STOCK">Alerta de estoque baixo</option>
+              <option value="MAINTENANCE_DUE">Prazo de manutenção</option>
             </select>
           </div>
-          <div className="field" style={{ maxWidth: 160 }}>
-            <label htmlFor="au-threshold">Avisar quando ≤</label>
-            <input
-              id="au-threshold"
-              type="number"
-              min={0}
-              value={form.threshold}
-              onChange={(e) =>
-                setForm({ ...form, threshold: Number(e.target.value) })
-              }
-              required
-            />
-          </div>
+
+          {form.kind === "LOW_STOCK" ? (
+            <>
+              <div className="field">
+                <label htmlFor="au-type">Tipo de equipamento</label>
+                <select
+                  id="au-type"
+                  value={form.equipmentTypeId}
+                  onChange={(e) =>
+                    setForm({ ...form, equipmentTypeId: e.target.value })
+                  }
+                  disabled={editingId != null}
+                  required
+                >
+                  {availableTypes.length === 0 && (
+                    <option value="">Todos os tipos já têm automação</option>
+                  )}
+                  {availableTypes.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field" style={{ maxWidth: 160 }}>
+                <label htmlFor="au-threshold">Avisar quando ≤</label>
+                <input
+                  id="au-threshold"
+                  type="number"
+                  min={0}
+                  value={form.threshold}
+                  onChange={(e) =>
+                    setForm({ ...form, threshold: Number(e.target.value) })
+                  }
+                  required
+                />
+              </div>
+            </>
+          ) : (
+            <div className="field" style={{ maxWidth: 200 }}>
+              <label htmlFor="au-lead">Avisar quantos dias antes</label>
+              <input
+                id="au-lead"
+                type="number"
+                min={0}
+                value={form.leadDays}
+                onChange={(e) =>
+                  setForm({ ...form, leadDays: Number(e.target.value) })
+                }
+                required
+              />
+            </div>
+          )}
+
           <div className="field" style={{ flex: "1 1 220px" }}>
             <label htmlFor="au-recipient">E-mail que recebe o aviso</label>
             <input
@@ -218,7 +285,11 @@ export function Automations() {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={!editingId && availableTypes.length === 0}
+            disabled={
+              !editingId &&
+              form.kind === "LOW_STOCK" &&
+              availableTypes.length === 0
+            }
           >
             {editingId ? "Salvar" : "Criar automação"}
           </button>
@@ -256,11 +327,22 @@ export function Automations() {
               <tr key={a.id}>
                 <td style={{ fontWeight: 600 }}>{a.name}</td>
                 <td className="muted" style={{ fontSize: 13 }}>
-                  Avisa quando os disponíveis de <strong>{a.equipmentType.name}</strong>{" "}
-                  chegam a <strong>{a.threshold}</strong> — envia e-mail para{" "}
-                  {a.recipient}.
-                  <br />
-                  Disponíveis agora: {a.availableNow}.
+                  {a.type === "MAINTENANCE_DUE" ? (
+                    <>
+                      Avisa <strong>{a.leadDays}</strong> dia(s) antes do prazo de
+                      uma manutenção e quando ele estoura — envia e-mail para{" "}
+                      {a.recipient}.
+                    </>
+                  ) : (
+                    <>
+                      Avisa quando os disponíveis de{" "}
+                      <strong>{a.equipmentType?.name}</strong> chegam a{" "}
+                      <strong>{a.threshold}</strong> — envia e-mail para{" "}
+                      {a.recipient}.
+                      <br />
+                      Disponíveis agora: {a.availableNow}.
+                    </>
+                  )}
                 </td>
                 <td>E-mail</td>
                 <td>

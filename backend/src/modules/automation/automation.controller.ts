@@ -2,29 +2,46 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { automationService } from "./automation.service.js";
 
-const createSchema = z.object({
+// Nome é opcional; string vazia vira "sem nome" (gerado automático).
+const optionalName = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  z.string().min(2, "Nome deve ter no mínimo 2 caracteres").optional()
+);
+
+// Estoque baixo (padrão): sem `type` no body significa LOW_STOCK.
+const lowStockSchema = z.object({
+  type: z.literal("LOW_STOCK").optional(),
   equipmentTypeId: z.string().uuid("Tipo de equipamento inválido"),
   threshold: z.coerce
     .number({ required_error: "Informe o limite" })
     .int("O limite deve ser um número inteiro")
     .min(0, "O limite não pode ser negativo"),
   recipient: z.string().email("E-mail do destinatário inválido"),
-  // Nome é opcional; string vazia vira "sem nome" (gerado automático).
-  name: z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
-    z.string().min(2, "Nome deve ter no mínimo 2 caracteres").optional()
-  ),
+  name: optionalName,
   active: z.boolean().optional(),
 });
+
+// Prazo de manutenção: global, com dias de antecedência.
+const maintenanceSchema = z.object({
+  type: z.literal("MAINTENANCE_DUE"),
+  leadDays: z.coerce
+    .number({ required_error: "Informe os dias de antecedência" })
+    .int("Os dias de antecedência devem ser um número inteiro")
+    .min(0, "Não pode ser negativo")
+    .max(3650, "Valor muito alto"),
+  recipient: z.string().email("E-mail do destinatário inválido"),
+  name: optionalName,
+  active: z.boolean().optional(),
+});
+
+const createSchema = z.union([maintenanceSchema, lowStockSchema]);
 
 const updateSchema = z
   .object({
     threshold: z.coerce.number().int().min(0).optional(),
+    leadDays: z.coerce.number().int().min(0).max(3650).optional(),
     recipient: z.string().email("E-mail do destinatário inválido").optional(),
-    name: z.preprocess(
-      (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
-      z.string().min(2, "Nome deve ter no mínimo 2 caracteres").optional()
-    ),
+    name: optionalName,
     active: z.boolean().optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {
@@ -60,6 +77,12 @@ export const automationController = {
 
   async sendTest(req: Request, res: Response) {
     const result = await automationService.sendTest(req.params.id);
+    return res.json(result);
+  },
+
+  // Checagem diária de prazos de manutenção (chamada pelo cron externo).
+  async runMaintenanceChecks(_req: Request, res: Response) {
+    const result = await automationService.runMaintenanceChecks();
     return res.json(result);
   },
 };
